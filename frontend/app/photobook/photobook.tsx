@@ -1,12 +1,4 @@
-import type { Route } from "./+types/home";
 import { useNavigate } from "react-router-dom";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
 
 const MyStyledButton = () => {
 
