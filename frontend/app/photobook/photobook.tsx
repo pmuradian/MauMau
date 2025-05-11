@@ -1,45 +1,17 @@
 import { useNavigate } from "react-router-dom";
-
-const MyStyledButton = () => {
-
-    let navigate = useNavigate(); 
-    const routeChange = () =>{ 
-      let path = `photobook`;
-      navigate(path);
-    }
-
-    return (
-        <button
-            style={{
-                padding: '10px 20px',
-                backgroundColor: '#4CAF50', // Green
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '16px',
-            }}
-            onClick={() => 
-                routeChange()
-            }
-        >
-          Click Me (Styled)
-        </button>
-    );
-};
+import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
 
 export default function Photobook() {
-    return (<div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <MyStyledButton />
-            </div>
-            )
-}
+    let navigate = useNavigate();
+    const routeChange = () => {
+        let path = `photobook`;
+        navigate(path);
+    }
 
-// const App = () => {
-//     return (
-//       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-//         <MyButton />
-//         <MyStyledButton />
-//       </div>
-//     )
-// }
+    return (<div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <PrimaryButton onClick={routeChange}>
+            Clime me
+        </PrimaryButton>
+    </div>
+    )
+}
