@@ -1,8 +1,25 @@
 import { DemoStorage, storage, PhotoBook, PageFormat } from "./storage.ts";
 import express from 'express';
+import cors from 'cors';
 
 const app = express()
 const port = 3000
+
+// app.use(cors())
+
+const corsOptions = {
+    origin: ['http://localhost'],
+    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Methods", "Access-Control-Request-Headers"],
+    credentials: true,
+    enablePreflight: true
+}
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+})
 
 type UploadInput = {
   file: File;
@@ -65,14 +82,17 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 });
 
-app.get('/create', (req, res) => {
+app.post('/create', (req, res) => {
+  console.log(req.body)
     const input: PhotoBookInput = {
         title: "My Photo Book",
         pageFormat: PageFormatInput.A4,
         pageCount: 10
     };
     let newKey = createPhotoBook(input);
-    res.send('newKey: ' + newKey);
+    res.send(JSON.stringify({
+      key: newKey,
+    }));
 });
 
 app.get('/book', (req, res) => {
