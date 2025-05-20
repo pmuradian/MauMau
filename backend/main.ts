@@ -83,21 +83,25 @@ app.get('/', (req, res) => {
 });
 
 app.post('/create', (req, res) => {
-  console.log(req.body)
     const input: PhotoBookInput = {
         title: "My Photo Book",
         pageFormat: PageFormatInput.A4,
         pageCount: 10
     };
     let newKey = createPhotoBook(input);
+    console.log("Created new photo book with key:", newKey);
     res.send(JSON.stringify({
       key: newKey,
     }));
 });
 
-app.get('/book', (req, res) => {
-    
-    res.send('Hello World! page')
+app.get('/photobook', (req, res) => {
+    const photobookId = req.query.key;
+    res.send(
+      JSON.stringify(
+        storage.getPhotoBook(photobookId)
+      )
+    )
 });
 
 app.get('/add_page', (req, res) => {

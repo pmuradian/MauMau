@@ -1,15 +1,22 @@
 import { PrimaryButton, SecondaryButton } from "../UserInterface/UserInterfaceComponents";
 import { createPhotobook, viewPhotobook } from "networking/NetworkService";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   return <HomeContent />;
 }
 
 function HomeContent() {
+  let navigate = useNavigate();
+    const routeChange = (path: string) => {
+        navigate(`photobook?key=${path}`);
+    }
+
   return (<div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
     <PrimaryButton onClick={() => { 
       createPhotobook("My Photobook", "A4", 10)
         .then((response) => {
+          routeChange(response.key);
           console.log("Photobook created:", response);
         })
         .catch((error) => {
