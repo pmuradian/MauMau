@@ -1,0 +1,36 @@
+.paper {
+    aspect-ratio: 210 / 297;
+    background-color: white;
+    border-width: 2px;
+    border-color: black;
+}
+
+.child {
+  aspect-ratio: 210 / 297;
+  width: 10px;
+  background: aquamarine;
+  border-width: 1px;
+  border-color: black;
+}
+
+.childBorder {
+  background: aquamarine;
+  border-width: 1px;
+  border-color: black;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import './Styles/paper.css';
 import { useDropzone } from 'react-dropzone'
 
 export function Dropzone() {
 
     const [files, setFiles] = useState([]);
-    const onDrop = useCallback(acceptedFiles => {
+    const onDrop = useCallback((acceptedFiles: (Blob | MediaSource)[]) => {
         // Do something with the files
         setFiles(prevFiles => [
             ...prevFiles, // Keep existing files
-            ...acceptedFiles.map(file => Object.assign(file, {
+            ...acceptedFiles.map((file: Blob | MediaSource) => Object.assign(file, {
                 preview: URL.createObjectURL(file) // Create a URL for image preview
             }))
         ]);
@@ -42,25 +43,47 @@ export function Dropzone() {
     ));
 
     return (
-        <div {...getRootProps()}>
-            <input {...getInputProps()} />
-            {
-                isDragActive ?
-                    <p>Drop the files here ...</p> :
-                    <p>Drag 'n' drop some files here, or click to select files</p>
-            }
-            {
-                files.length > 0 && (
-                    <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-lg">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Image Previews</h2>
-                        <div className="flex flex-wrap gap-4 justify-center">
-                            {previews}
-                        </div>
-                    </div>
-                )
-            }
+        <div className="childBorder" style={{ width: '100%', aspectRatio: '1/1'}}>
+
         </div>
+        // <div {...getRootProps()}>
+        //     <input {...getInputProps()} />
+        //     {
+        //         isDragActive ?
+        //             <p>Drop the files here ...</p> :
+        //             <p>Drag 'n' drop some files here, or click to select files</p>
+        //     }
+        //     {
+        //         files.length > 0 && (
+        //             <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-lg">
+        //                 <div className="flex flex-wrap">
+        //                     {previews}
+        //                 </div>
+        //             </div>
+        //         )
+        //     }
+        // </div>
     )
+}
+
+export function HorizontalTripplet() {
+    return (
+        <div className='column' style={{ width: '100%', display: 'flex', flex: '1'}}>
+            <div className='row' style={{ width: '100%', display: 'flex', flex: '1'}}>
+                <Dropzone></Dropzone>
+                <Dropzone></Dropzone>
+            </div>
+            <Dropzone></Dropzone>
+        </div>
+    );
+}
+
+export function VerticalTripplet({ children }: { children: React.ReactNode }) {
+    return (
+        <div className="flex flex-col items-center justify-center gap-4">
+            {children}
+        </div>
+    );
 }
 
 function VerticalArrangement({ children }: { children: React.ReactNode }) {

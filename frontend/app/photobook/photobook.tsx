@@ -2,7 +2,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
 import React, { useEffect, useState } from "react";
 import { createPhotobook, viewPhotobook } from "networking/NetworkService";
-import { Dropzone } from "../UserInterface/Dropzone";
+import { Dropzone, HorizontalTripplet,  } from "../UserInterface/Dropzone";
+import A4Rectangle from "UserInterface/SheetTypes";
 
 class PhotobookData {
     constructor(
@@ -40,13 +41,21 @@ export default function Photobook() {
     }, [photobookKey]);
 
     return (
-        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <PrimaryButton onClick={() => {}}>
-                {data.title || "Loading Title..."}
-            </PrimaryButton>
-            <Dropzone>
-
-            </Dropzone>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'row', gap: 20 }}>
+            <div style={{display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
+                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
+                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
+                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
+                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
+            </div>
+            
+            <div className="min-h-screen h-screen bg-gray-100 p-4">
+                <A4Rectangle>
+                    <HorizontalTripplet></HorizontalTripplet>
+                </A4Rectangle>
+            </div>
         </div>
     );
 }
+
