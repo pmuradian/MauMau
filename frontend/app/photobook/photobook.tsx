@@ -1,9 +1,9 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
-import React, { useEffect, useState } from "react";
-import { createPhotobook, viewPhotobook } from "networking/NetworkService";
-import { Dropzone, HorizontalTripplet,  } from "../UserInterface/Dropzone";
-import A4Rectangle from "UserInterface/SheetTypes";
+import { useEffect, useState } from "react";
+import { viewPhotobook } from "networking/NetworkService";
+import { HorizontalTripplet  } from "UserInterface/Layouts";
+import { A4Portrait } from "UserInterface/Pages";
 
 class PhotobookData {
     constructor(
@@ -51,9 +51,9 @@ export default function Photobook() {
             </div>
             
             <div className="min-h-screen h-screen bg-gray-100 p-4">
-                <A4Rectangle>
-                    <HorizontalTripplet></HorizontalTripplet>
-                </A4Rectangle>
+                <A4Portrait>
+                    <HorizontalTripplet />
+                </A4Portrait>
             </div>
         </div>
     );

@@ -31,13 +31,13 @@ const MauButton = ({
 
 export const PrimaryButton = ({ children, onClick }: { children: React.ReactNode, onClick: () => void }) => {
 
-    return <MauButton onClick={onClick} style={{ backgroundColor: 'green' }}>
+    return <MauButton onClick={onClick} style={{ backgroundColor: '#77A0A0', color: '#333333' }}>
         {children}
     </MauButton>;
 };
 
 export const SecondaryButton = ({ children, onClick }: { children: React.ReactNode, onClick: () => void }) => {
-    return <MauButton onClick={onClick} style={{ backgroundColor: 'white', color: 'green' }}>
+    return <MauButton onClick={onClick} style={{ backgroundColor: '#A68B77', color: '#555555' }}>
         {children}
     </MauButton>;
 };

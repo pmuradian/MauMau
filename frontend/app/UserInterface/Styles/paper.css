@@ -5,16 +5,47 @@
     border-color: black;
 }
 
+.primaryButton { 
+  background-color: #dc9777; 
+  color: white;
+}
+
+.secondaryButton { 
+  background-color: #DC778A; 
+  color: white;
+}
+
+.paperA4Portrait {
+    aspect-ratio: 0.7071;
+    background-color: white;
+    border-width: 2px;
+    border-color: black;
+}
+
+.paperA4Landscape {
+    aspect-ratio: 1.4142;
+    background-color: white;
+    border-width: 2px;
+    border-color: black;
+}
+
+.square {
+    aspect-ratio: 1;
+    background-color: white;
+    border-width: 2px;
+    border-color: black;
+}
+
 .child {
   aspect-ratio: 210 / 297;
   width: 10px;
-  background: aquamarine;
+  background: rgb(183, 236, 218);
   border-width: 1px;
   border-color: black;
 }
 
 .childBorder {
-  background: aquamarine;
+  background: rgb(138, 235, 202);
   border-width: 1px;
   border-color: black;
 }
