@@ -7,20 +7,33 @@ type RationProp = {
 }
 
 class File {
+    name: string;
+    data: Blob | MediaSource;
+    preview: string;
+
     constructor(
         name: string,
-        preview: URL
-    ) { }
+        data: Blob | MediaSource,
+        preview: string
+    ) { 
+        this.name = name;
+        this.data = data;
+        this.preview = preview;
+    }
 }
 
 export function Dropzone({ aspectRatio = '1' }: RationProp) {
 
-    const [files, setFiles] = useState<((Blob | MediaSource) & { preview: string;})[]>([]);
+    const [file, setFile] = useState<File | null>(null);
     const onDrop = useCallback((acceptedFiles: (Blob | MediaSource)[]) => {
         const file = acceptedFiles[acceptedFiles.length - 1];
-        const a = Object.assign(file, { preview: URL.createObjectURL(file) })
+        const a = 
         // Do something with the files
-        setFiles([a]);
+        setFile(new File(
+            URL.createObjectURL(file),
+            file, // Assuming file is a Blob or MediaSource
+            URL.createObjectURL(file) // Create a preview URL for the file
+        ));
     }, [])
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -31,8 +44,8 @@ export function Dropzone({ aspectRatio = '1' }: RationProp) {
         multiple: false // Allow multiple files to be dropped
     });
 
-    const previews = files.map(file => (
-        <div key={file.name} style={{ width: '100%', display: 'flex', flex: '1' }}>
+    const previews = file ? (
+        <div style={{ width: '100%', display: 'flex', flex: '1' }}>
             <img
                 src={file.preview}
                 // aspect fill style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -41,29 +54,28 @@ export function Dropzone({ aspectRatio = '1' }: RationProp) {
                 onError={(e) => {
                     console.error("Error loading image preview:", e);
                     // Optionally remove the problematic file from state
-                    setFiles(prevFiles => prevFiles.filter(f => f.name !== file.name));
+                    // setFiles(prevFiles => prevFiles.filter(f => f.name !== file.name));
                 }}
             />
         </div>
-    ));
+    ) : null;
 
     return (
         <div className="childBorder" style={{ width: '100%', aspectRatio: aspectRatio }}>
-            <div {...getRootProps()}>
-                <input {...getInputProps()} />
+            <div className="w-full h-full" {...getRootProps()}>
+                <input className="w-full h-full" {...getInputProps()} />
                 {
-                    isDragActive ?
-                        <p>Drop the files here ...</p> :
-                        <p>Drag 'n' drop some files here, or click to select files</p>
+                    file ?
+                        null : <p>Drag 'n' drop some files here, or click to select files</p>
                 }
                 {
-                    files.length > 0 && (
-                        <div className="w-full">
+                    file ? (
+                        <div className="w-full h-full">
                             <div>
                                 {previews}
                             </div>
                         </div>
-                    )
+                    ) : null
                 }
             </div>
         </div>
