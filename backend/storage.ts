@@ -9,12 +9,14 @@ interface Persistance {
  export class Page {
     page: number;
     arrangement: PageArrangement;
+    images: Map<number, string> = new Map();
   };
   
  export class PhotoBook {
       title: string;
       pageFormat: PageFormat;
       pageCount: number;
+      pages: Page[] = [];
       
       constructor(title: string, pageFormat: PageFormat, pageCount: number) {
           this.title = title;

@@ -8,12 +8,13 @@ export default function Home() {
 
 function HomeContent() {
   let navigate = useNavigate();
-    const routeChange = (path: string) => {
-        navigate(`photobook?key=${path}`);
-    }
+  const routeChange = (path: string) => {
+    console.log("Navigating to:", path);
+    navigate(`photobook?key=${path}`);
+  }
 
   return (<div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-    <PrimaryButton onClick={() => { 
+    <PrimaryButton onClick={() => {
       createPhotobook("My Photobook", "A4", 10)
         .then((response) => {
           routeChange(response.key);
@@ -33,7 +34,7 @@ function HomeContent() {
         .catch((error) => {
           console.error("Error viewing photobook:", error);
         })
-     }}>
+    }}>
       View existing photobooks
     </SecondaryButton>
   </div>

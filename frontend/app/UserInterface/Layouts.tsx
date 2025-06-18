@@ -1,13 +1,24 @@
+import { on } from "events";
 import { Dropzone } from "./Dropzone";
+import { File } from "./Dropzone"
 
-export function HorizontalTripplet() {
+export function HorizontalTripplet({onImageDropped}: { onImageDropped?: (file: File) => void }) {
     return (
         <div className='column' style={{paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
             <div className='row' style={{ width: '100%', display: 'flex', flex: '1' }}>
-                <Dropzone></Dropzone>
-                <Dropzone></Dropzone>
+                <Dropzone onImageDropped = {(file: File) => {
+                    onImageDropped?.(file);
+                    console.log("Image dropped:", file);
+                }}></Dropzone>
+                <Dropzone onImageDropped = {(file: File) => {
+                    onImageDropped?.(file);
+                    console.log("Image dropped:", file);
+                }}></Dropzone>
             </div>
-            <Dropzone aspectRatio = '1.5'></Dropzone>
+            <Dropzone aspectRatio = '1.5' onImageDropped = {(file: File) => {
+                onImageDropped?.(file);
+                console.log("Image dropped:", file);
+            }}></Dropzone>
         </div>
     );
 }

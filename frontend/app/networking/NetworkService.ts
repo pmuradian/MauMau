@@ -38,3 +38,33 @@ export function viewPhotobook(
         response.json()
     );
 }
+
+// export function uploadImage(
+//     photobookId: string,
+//     image: string
+// ): Promise<any> {
+//     const formData = new FormData();
+//     formData.append("image", image);
+
+//     return fetch(MauMauUpload + "?key=" + photobookId, {
+//         method: "POST",
+//         body: formData,
+//     }).then((response) => 
+//         response.json()
+//     );
+// }
+
+// export function addPage(
+//     photobookId: string,
+//     pageData: any
+// ): Promise<any> {
+//     return fetch(MauMauAddPage + "?key=" + photobookId, {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(pageData),
+//     }).then((response) => 
+//         response.json()
+//     );
+// }

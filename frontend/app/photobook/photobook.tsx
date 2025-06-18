@@ -2,15 +2,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
 import { useEffect, useState } from "react";
 import { viewPhotobook } from "networking/NetworkService";
-import { HorizontalTripplet  } from "UserInterface/Layouts";
+import { HorizontalTripplet } from "UserInterface/Layouts";
 import { A4Portrait } from "UserInterface/Pages";
+import { File } from "UserInterface/Dropzone";
 
 class PhotobookData {
     constructor(
         public title: string = "",
         public description: string = "",
         public images: string[] = []
-    ) {}
+    ) { }
+}
+
+class UIState {
+
 }
 
 export default function Photobook() {
@@ -19,8 +24,6 @@ export default function Photobook() {
     const photobookKey = searchParams.get("key") || "";
 
     useEffect(() => {
-        console.log("useEffect triggered for key:", photobookKey);
-
         if (photobookKey) {
             viewPhotobook(photobookKey)
                 .then((response) => {
@@ -40,22 +43,46 @@ export default function Photobook() {
         }
     }, [photobookKey]);
 
+
     return (
         <div style={{ padding: 20, display: 'flex', flexDirection: 'row', gap: 20 }}>
-            <div style={{display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
-                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
-                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
-                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
-                <div style={{flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red'}}></div>
-            </div>
-            
+            <SideContent />
+
             <div className="min-h-screen h-screen bg-gray-100 p-4">
                 <A4Portrait>
-                    <HorizontalTripplet />
+                    <HorizontalTripplet onImageDropped={(file: File) => {
+                        console.log("Image dropped:");
+                        // var reader = new FileReader();
+                        // reader.readAsDataURL(file.data);
+                        // reader.onload = () => {
+                        //     uploadImage(photobookKey, reader.result as string)
+                        //     console.log(reader.result); //base64encoded string
+                        // };
+                        // reader.onerror = error => {
+                        //     console.log("Error: ", error);
+                        // };
+                    }} />
                 </A4Portrait>
+
+                <PrimaryButton onClick={() => {
+                    console.log("Print button clicked");
+                }}>
+                    PRINT
+                </PrimaryButton>
             </div>
         </div>
     );
 }
 
+function SideContent() {
+    return <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red' }}></div>
+        <div style={{ flex: '1', width: '40px', aspectRatio: 210 / 297, backgroundColor: 'red' }}></div>
+
+        <PrimaryButton onClick={() => {
+            console.log("Add page clicked");
+        }}>
+            Add Page
+        </PrimaryButton>
+    </div>
+}
