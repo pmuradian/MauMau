@@ -1,5 +1,4 @@
 import './Styles/paper.css';
-import useWindowDimensions from './UserInterfaceComponents';
 
 import type { ReactNode } from 'react';
 
@@ -8,9 +7,8 @@ type A4PortraitProps = {
 };
 
 export const A4Portrait = ({ children }: A4PortraitProps) => {
-  const height = useWindowDimensions().height;
   return (
-    <div className="paperA4Portrait" style={{ height: height * 0.8, justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
+    <div className="paperA4Portrait" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
       <div className="p-4">
         {children}
       </div>
@@ -19,9 +17,8 @@ export const A4Portrait = ({ children }: A4PortraitProps) => {
 };
 
 export const A4Landscape = (children: ReactNode) => {
-  const height = useWindowDimensions().height;
   return (
-    <div className="paperA4Landscape" style={{ height: height * 0.8, justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
+    <div className="paperA4Landscape" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
       <div className="p-4">
         {children}
       </div>
@@ -30,9 +27,8 @@ export const A4Landscape = (children: ReactNode) => {
 };
 
 export const Square = (children: ReactNode) => {
-  const height = useWindowDimensions().height;
   return (
-    <div className="square" style={{ height: height * 0.8, justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
+    <div className="square" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
       <div className="p-4">
         {children}
       </div>
@@ -40,9 +36,8 @@ export const Square = (children: ReactNode) => {
   );
 };
 export const PageFormat = (className = "", children: ReactNode) => {
-  const height = useWindowDimensions().height;
   return (
-    <div className="${className}" style={{ height: height * 0.8, justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
+    <div className="${className}" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
       <div className="p-4">
         {children}
       </div>

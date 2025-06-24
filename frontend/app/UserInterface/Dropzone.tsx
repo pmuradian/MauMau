@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import './Styles/paper.css';
 import { useDropzone } from 'react-dropzone'
 

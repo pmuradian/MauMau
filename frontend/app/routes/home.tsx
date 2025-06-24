@@ -17,8 +17,9 @@ function HomeContent() {
     <PrimaryButton onClick={() => {
       createPhotobook("My Photobook", "A4", 10)
         .then((response) => {
-          routeChange(response.key);
+          alert(`Photobook created successfully ${response.key}`);
           console.log("Photobook created:", response);
+          routeChange(response.key);
         })
         .catch((error) => {
           console.error("Error creating photobook:", error);

@@ -1,4 +1,3 @@
-import { on } from "events";
 import { Dropzone } from "./Dropzone";
 import { File } from "./Dropzone"
 

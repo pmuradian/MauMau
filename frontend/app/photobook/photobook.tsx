@@ -14,10 +14,6 @@ class PhotobookData {
     ) { }
 }
 
-class UIState {
-
-}
-
 export default function Photobook() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [data, setData] = useState({} as PhotobookData);
