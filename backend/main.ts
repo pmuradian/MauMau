@@ -5,21 +5,14 @@ import cors from 'cors';
 const app = express()
 const port = 3000
 
-// app.use(cors())
-
-const corsOptions = {
-    origin: ['http://localhost'],
-    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Methods", "Access-Control-Request-Headers"],
-    credentials: true,
-    enablePreflight: true
-}
-
-app.use((req, res, next) => {
+app.use((_, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
 })
+
+app.use(express.json())
 
 type UploadInput = {
   file: File;
@@ -80,6 +73,13 @@ function upload(uploadInput: UploadInput): void {
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
+});
+
+app.post('/upload', (req, res) => {
+    console.log("Upload endpoint hit", req);
+    const photobookId = req.query.key;
+    const file = req.body;
+    console.log("File received:", file.img);
 });
 
 app.post('/create', (req, res) => {

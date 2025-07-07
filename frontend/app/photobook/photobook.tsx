@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
 import { useEffect, useState } from "react";
-import { viewPhotobook } from "networking/NetworkService";
+import { viewPhotobook, uploadImage } from "networking/NetworkService";
 import { HorizontalTripplet } from "UserInterface/Layouts";
 import { A4Portrait } from "UserInterface/Pages";
 import { File } from "UserInterface/Dropzone";
@@ -48,15 +48,14 @@ export default function Photobook() {
                 <A4Portrait>
                     <HorizontalTripplet onImageDropped={(file: File) => {
                         console.log("Image dropped:");
-                        // var reader = new FileReader();
-                        // reader.readAsDataURL(file.data);
-                        // reader.onload = () => {
-                        //     uploadImage(photobookKey, reader.result as string)
-                        //     console.log(reader.result); //base64encoded string
-                        // };
-                        // reader.onerror = error => {
-                        //     console.log("Error: ", error);
-                        // };
+                        var reader = new FileReader();
+                        reader.readAsDataURL(file.data);
+                        reader.onload = () => {
+                            uploadImage(photobookKey, reader.result as string)
+                        };
+                        reader.onerror = error => {
+                            console.log("Error: ", error);
+                        };
                     }} />
                 </A4Portrait>
 

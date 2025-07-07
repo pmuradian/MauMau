@@ -43,12 +43,16 @@ export function uploadImage(
     photobookId: string,
     image: string
 ): Promise<any> {
-    const formData = new FormData();
-    formData.append("image", image);
-
+    const body = {
+        img: image
+    }
+    const jsonBody = JSON.stringify(body);
     return fetch(MauMauUpload + "?key=" + photobookId, {
         method: "POST",
-        body: formData,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: jsonBody,
     }).then((response) => 
         response.json()
     );
