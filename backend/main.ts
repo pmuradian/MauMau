@@ -1,4 +1,5 @@
 import { DemoStorage, storage, PhotoBook, PageFormat } from "./storage.ts";
+import { PDFService } from "./pdf-service.ts";
 import express from 'express';
 import cors from 'cors';
 
@@ -12,7 +13,8 @@ app.use((_, res, next) => {
   next();
 })
 
-app.use(express.json())
+app.use(express.json({ limit: '500mb' }))
+app.use(express.urlencoded({ limit: '500mb', extended: true }))
 
 type UploadInput = {
   file: File;
@@ -76,10 +78,40 @@ app.get('/', (req, res) => {
 });
 
 app.post('/upload', (req, res) => {
-    console.log("Upload endpoint hit", req);
-    const photobookId = req.query.key;
-    const file = req.body;
-    console.log("File received:", file.img);
+    try {
+        console.log("Upload endpoint hit");
+        const photobookId = req.query.key as string;
+        const { img, coords } = req.body;
+        
+        console.log("Photobook ID:", photobookId);
+        console.log("Has image data:", !!img);
+        console.log("Coords:", coords);
+        
+        if (!photobookId || !img || !coords) {
+            console.log("Missing required fields");
+            return res.status(400).json({ error: 'Missing required fields: key, img, or coords' });
+        }
+        
+        // Extract coordinates and dimensions
+        const { x, y, width, height, dropZoneIndex } = coords;
+        
+        // Use the dropzone index from the frontend, fallback to coordinate-based detection
+        let finalDropZoneIndex = dropZoneIndex ?? 0;
+        if (dropZoneIndex === undefined) {
+            // Fallback: determine dropzone index based on coordinates
+            if (x > 300) finalDropZoneIndex = 1; // Right side of top row
+            if (y > 400) finalDropZoneIndex = 2; // Bottom dropzone
+        }
+        
+        // Store the image with its placement data
+        storage.addImageToPhotoBook(photobookId, img, x, y, width, height, finalDropZoneIndex);
+        
+        console.log(`Image uploaded to photobook ${photobookId} at dropzone ${finalDropZoneIndex}`);
+        res.json({ success: true, dropZoneIndex: finalDropZoneIndex });
+    } catch (error) {
+        console.error('Error in upload endpoint:', error);
+        res.status(500).json({ error: 'Internal server error during upload' });
+    }
 });
 
 app.post('/create', (req, res) => {
@@ -106,6 +138,76 @@ app.get('/photobook', (req, res) => {
 
 app.get('/add_page', (req, res) => {
     res.send('Hello World! upload')
+});
+
+app.delete('/remove-image', (req, res) => {
+    try {
+        console.log("Remove image endpoint hit");
+        const photobookId = req.query.key as string;
+        const dropZoneIndex = parseInt(req.query.dropZoneIndex as string);
+        
+        if (!photobookId || isNaN(dropZoneIndex)) {
+            return res.status(400).json({ error: 'Missing required fields: key or dropZoneIndex' });
+        }
+        
+        storage.removeImageFromPhotoBook(photobookId, dropZoneIndex);
+        
+        console.log(`Image removed from photobook ${photobookId}, dropzone ${dropZoneIndex}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error in remove image endpoint:', error);
+        res.status(500).json({ error: 'Internal server error during image removal' });
+    }
+});
+
+app.put('/update-title', (req, res) => {
+    try {
+        console.log("Update title endpoint hit");
+        const photobookId = req.query.key as string;
+        const { title } = req.body;
+        
+        if (!photobookId || !title) {
+            return res.status(400).json({ error: 'Missing required fields: key or title' });
+        }
+        
+        const success = storage.updatePhotobookTitle(photobookId, title);
+        
+        if (success) {
+            console.log(`Title updated for photobook ${photobookId}: ${title}`);
+            res.json({ success: true, title });
+        } else {
+            res.status(404).json({ error: 'Photobook not found' });
+        }
+    } catch (error) {
+        console.error('Error in update title endpoint:', error);
+        res.status(500).json({ error: 'Internal server error during title update' });
+    }
+});
+
+app.get('/generate-pdf', async (req, res) => {
+    try {
+        const photobookId = req.query.key as string;
+        
+        if (!photobookId) {
+            return res.status(400).json({ error: 'Missing photobook key' });
+        }
+        
+        const photobook = storage.getPhotoBook(photobookId);
+        if (!photobook) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+        
+        console.log(`Generating PDF for photobook ${photobookId}`);
+        const pdfBuffer = await PDFService.generatePhotobookPDF(photobook);
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${photobook.title || 'photobook'}.pdf"`);
+        res.send(pdfBuffer);
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({ error: 'Failed to generate PDF' });
+    }
 });
 
 app.listen(port, () => {

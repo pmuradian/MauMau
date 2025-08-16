@@ -4,7 +4,8 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "node-http": "^0.0.5",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "pdfkit": "^0.15.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.3"
