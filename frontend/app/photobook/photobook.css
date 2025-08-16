@@ -118,21 +118,37 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     padding: 2px;
+}
+
+.mini-layout.vsplit {
+    flex-direction: row;
+}
+
+.mini-layout.vsplit .mini-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.mini-layout.vsplit .mini-dropzone.large {
+    flex: 1;
+    margin-left: 2px;
 }
 
 .mini-layout .mini-row {
     display: flex;
     flex-direction: row;
-    gap: 1px;
+    gap: 2px;
     flex: 1;
 }
 
 .mini-layout .mini-dropzone {
     background: #f8f9fa;
     border: 1px dashed #dee2e6;
-    border-radius: 1px;
+    border-radius: 2px;
     flex: 1;
 }
 
@@ -140,14 +156,12 @@
     flex: 1;
 }
 
-.photobook-page-thumbnail:hover .mini-dropzone {
-    border-color: #007acc;
-    background: #f0f8ff;
+.mini-layout.vertical {
+    flex-direction: column;
 }
 
-.photobook-page-thumbnail.active .mini-dropzone {
-    border-color: #007acc;
-    background: #e6f3ff;
+.mini-layout.horizontal {
+    flex-direction: row;
 }
 
 .photobook-sidebar-actions {

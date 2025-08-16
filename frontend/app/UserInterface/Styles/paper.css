@@ -19,6 +19,7 @@
   aspect-ratio: 0.7071;
   background-color: white;
   border: 1px solid #e0e0e0;
+  margin: 0 auto;
 }
 
 .paperA4Landscape {
@@ -26,6 +27,7 @@
   background-color: white;
   border-width: 2px;
   border-color: black;
+  margin: 0 auto;
 }
 
 .square {
@@ -33,6 +35,7 @@
   background-color: white;
   border-width: 2px;
   border-color: black;
+  margin: 0 auto;
 }
 
 .child {

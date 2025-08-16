@@ -16,7 +16,7 @@ const layoutOptions: LayoutOption[] = [
         name: 'Horizontal Triplet',
         description: 'Two images on top, one wide image below',
         preview: (
-            <div className="layout-preview">
+            <div className="layout-preview a4">
                 <div className="preview-row">
                     <div className="preview-dropzone"></div>
                     <div className="preview-dropzone"></div>
@@ -30,7 +30,7 @@ const layoutOptions: LayoutOption[] = [
         name: 'Vertical Triplet',
         description: 'Two images on left, one large image on right',
         preview: (
-            <div className="layout-preview">
+            <div className="layout-preview a4 vsplit">
                 <div className="preview-column">
                     <div className="preview-dropzone"></div>
                     <div className="preview-dropzone"></div>
@@ -44,7 +44,7 @@ const layoutOptions: LayoutOption[] = [
         name: 'Vertical Stack',
         description: 'Two images stacked vertically',
         preview: (
-            <div className="layout-preview vertical">
+            <div className="layout-preview a4 vertical">
                 <div className="preview-dropzone"></div>
                 <div className="preview-dropzone"></div>
             </div>
@@ -55,7 +55,7 @@ const layoutOptions: LayoutOption[] = [
         name: 'Horizontal Stack',
         description: 'Two images side by side',
         preview: (
-            <div className="layout-preview horizontal">
+            <div className="layout-preview a4 horizontal">
                 <div className="preview-dropzone"></div>
                 <div className="preview-dropzone"></div>
             </div>
@@ -66,7 +66,7 @@ const layoutOptions: LayoutOption[] = [
         name: 'Single Image',
         description: 'One large image taking the full page',
         preview: (
-            <div className="layout-preview">
+            <div className="layout-preview a4">
                 <div className="preview-dropzone full"></div>
             </div>
         )

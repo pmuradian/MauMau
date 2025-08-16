@@ -57,30 +57,128 @@ export function HorizontalTripplet({
     );
 }
 
-export function VerticalTripplet({ children }: { children: React.ReactNode }) {
+export function VerticalTripplet({
+    onImageDropped,
+    onImageRemoved,
+    initialImages = {}
+}: {
+    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
+}) {
     return (
-        <div className='row' style={{ paddingTop: '12%', width: '50%', display: 'flex', flex: '1' }}>
+        <div className='row' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
             <div className='column' style={{ width: '50%', display: 'flex', flex: '1' }}>
-                <Dropzone></Dropzone>
-                <Dropzone></Dropzone>
+                <Dropzone
+                    onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                        const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                        onImageDropped?.(file, merged, 0);
+                    }}
+                    onImageRemoved={() => onImageRemoved?.(0)}
+                    initialImage={initialImages[0]}
+                />
+                <Dropzone
+                    onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                        const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                        onImageDropped?.(file, merged, 1);
+                    }}
+                    onImageRemoved={() => onImageRemoved?.(1)}
+                    initialImage={initialImages[1]}
+                />
             </div>
-            <Dropzone></Dropzone>
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 2);
+                }}
+                onImageRemoved={() => onImageRemoved?.(2)}
+                initialImage={initialImages[2]}
+            />
         </div>
     );
 }
 
-function VerticalArrangement({ children }: { children: React.ReactNode }) {
+export function VerticalArrangement({
+    onImageDropped,
+    onImageRemoved,
+    initialImages = {}
+}: {
+    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
+}) {
     return (
         <div className='column' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
-            <Dropzone></Dropzone>
-            <Dropzone></Dropzone>
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 0);
+                }}
+                onImageRemoved={() => onImageRemoved?.(0)}
+                initialImage={initialImages[0]}
+            />
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 1);
+                }}
+                onImageRemoved={() => onImageRemoved?.(1)}
+                initialImage={initialImages[1]}
+            />
         </div>
     );
 }
-function HorizontalArrangement({ children }: { children: React.ReactNode }) {
+
+export function HorizontalArrangement({
+    onImageDropped,
+    onImageRemoved,
+    initialImages = {}
+}: {
+    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
+}) {
     return (
-        <div className="flex flex-row items-center justify-center gap-4">
-            {children}
+        <div className='row' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1', gap: 8 }}>
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 0);
+                }}
+                onImageRemoved={() => onImageRemoved?.(0)}
+                initialImage={initialImages[0]}
+            />
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 1);
+                }}
+                onImageRemoved={() => onImageRemoved?.(1)}
+                initialImage={initialImages[1]}
+            />
+        </div>
+    );
+}
+
+export function SingleImageLayout({
+    onImageDropped,
+    onImageRemoved,
+    initialImages = {}
+}: {
+    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
+}) {
+    return (
+        <div className='column' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+            <Dropzone
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 0);
+                }}
+                onImageRemoved={() => onImageRemoved?.(0)}
+                initialImage={initialImages[0]}
+            />
         </div>
     );
 }
