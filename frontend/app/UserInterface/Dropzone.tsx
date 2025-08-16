@@ -1,10 +1,9 @@
 import { useCallback, useState } from 'react'
 import './Styles/paper.css';
+import './Styles/dropzone.css';
 import { useDropzone } from 'react-dropzone'
 
-type RationProp = {
-    aspectRatio?: string;
-}
+
 
 export class File {
     name: string;
@@ -23,17 +22,39 @@ export class File {
 }
 
 export function Dropzone(
-    { aspectRatio = '1', onImageDropped = (f) => { } }: { aspectRatio?: string, onImageDropped?: (file: File) => void }
+    { aspectRatio = '1', onImageDropped = () => { }, onImageRemoved = () => { } }: {
+        aspectRatio?: string,
+        onImageDropped?: (file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => void,
+        onImageRemoved?: () => void
+    }
 ) {
 
     const [file, setFile] = useState<File | null>(null);
-    const onDrop = useCallback((acceptedFiles: (Blob)[]) => {
+    const onDrop = useCallback((acceptedFiles: (Blob)[], event?: any) => {
         const file = acceptedFiles[acceptedFiles.length - 1];
-        // Do something with the files
-        const image = new File(URL.createObjectURL(file), file, URL.createObjectURL(file))
+        const image = new File(URL.createObjectURL(file), file, URL.createObjectURL(file));
         setFile(image);
-        onImageDropped(image);
-    }, [])
+
+        // Get drop coordinates
+        let coords = { x: 0, y: 0 };
+        if (event && event.type === 'drop' && event.clientX !== undefined && event.clientY !== undefined) {
+            coords = { x: event.clientX, y: event.clientY };
+        }
+
+        // Get image dimensions
+        const img = new window.Image();
+        img.onload = function () {
+            const dimensions = { width: img.width, height: img.height };
+            onImageDropped(image, coords, dimensions);
+        };
+        img.src = image.preview;
+    }, [onImageDropped])
+
+    const handleRemoveImage = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setFile(null);
+        onImageRemoved();
+    }, [onImageRemoved]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -43,30 +64,40 @@ export function Dropzone(
         multiple: false
     });
 
-    const previews = file ? (
-        <div style={{ width: '100%', display: 'flex', flex: '1' }}>
-            <img
-                src={file.preview}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', aspectRatio: aspectRatio }}
-                onError={(e) => {
-                    console.error("Error loading image preview:", e);
-                }}
-            />
-        </div>
-    ) : null;
+    const dropzoneClasses = `dropzone ${isDragActive ? 'drag-active' : ''}`;
 
     return (
-        <div className="childBorder" style={{ width: '100%', aspectRatio: aspectRatio }}>
-            <div className="w-full h-full" {...getRootProps()}>
-                <input className="w-full h-full" {...getInputProps()} />
-                {
-                    file ? <div className="w-full h-full">
-                        <div>
-                            {previews}
-                        </div>
-                    </div> : <p>Drag 'n' drop some files here, or click to select files</p>
-                }
-            </div>
+        <div
+            className={dropzoneClasses}
+            style={{ aspectRatio: aspectRatio }}
+            {...getRootProps()}
+        >
+            <input {...getInputProps()} />
+            {file ? (
+                <div className="dropzone-image-container">
+                    <img
+                        src={file.preview}
+                        className="dropzone-image"
+                        onError={(e) => {
+                            console.error("Error loading image preview:", e);
+                        }}
+                    />
+                    <button
+                        className="dropzone-remove-button"
+                        onClick={handleRemoveImage}
+                        title="Remove image"
+                    >
+                        ×
+                    </button>
+                </div>
+            ) : (
+                <div className="dropzone-empty-state">
+                    <div className="dropzone-plus-icon">+</div>
+                    <p className="dropzone-text">
+                        {isDragActive ? 'Drop image here' : 'Drop image or click to select'}
+                    </p>
+                </div>
+            )}
         </div>
     )
 }
