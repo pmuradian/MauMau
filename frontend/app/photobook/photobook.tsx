@@ -5,6 +5,7 @@ import { viewPhotobook, uploadImage, generatePDF, removeImage, updatePhotobookTi
 import { HorizontalTripplet } from "UserInterface/Layouts";
 import { A4Portrait } from "UserInterface/Pages";
 import { File } from "UserInterface/Dropzone";
+import { LayoutSelector, type LayoutType } from "UserInterface/LayoutSelector";
 import "./photobook.css";
 
 class PhotobookData {
@@ -19,7 +20,8 @@ class PhotobookData {
 class PageData {
     constructor(
         public pageNumber: number,
-        public images: { [dropZoneIndex: number]: string } = {}
+        public images: { [dropZoneIndex: number]: string } = {},
+        public layout: LayoutType = 'horizontal-triplet'
     ) { }
 }
 
@@ -31,16 +33,31 @@ export default function Photobook() {
     const [selectedPage, setSelectedPage] = useState(1);
     const [pageData, setPageData] = useState<{ [pageNumber: number]: PageData }>({});
     const [totalPages, setTotalPages] = useState(3); // Default to 3 pages for now
+    const [showLayoutSelector, setShowLayoutSelector] = useState(false);
     const photobookKey = searchParams.get("key") || "";
 
     // Initialize page data for all pages
     useEffect(() => {
         const initialPageData: { [pageNumber: number]: PageData } = {};
         for (let i = 1; i <= totalPages; i++) {
-            initialPageData[i] = new PageData(i);
+            if (!pageData[i]) {
+                initialPageData[i] = new PageData(i);
+            } else {
+                initialPageData[i] = pageData[i];
+            }
         }
         setPageData(initialPageData);
     }, [totalPages]);
+
+    const handleAddPage = (layout: LayoutType) => {
+        const newPageNumber = totalPages + 1;
+        setTotalPages(newPageNumber);
+        setPageData(prev => ({
+            ...prev,
+            [newPageNumber]: new PageData(newPageNumber, {}, layout)
+        }));
+        setSelectedPage(newPageNumber);
+    };
 
     useEffect(() => {
         if (photobookKey) {
@@ -83,7 +100,7 @@ export default function Photobook() {
                 selectedPage={selectedPage}
                 totalPages={totalPages}
                 onPageSelect={setSelectedPage}
-                onAddPage={() => setTotalPages(prev => prev + 1)}
+                onAddPage={() => setShowLayoutSelector(true)}
             />
 
             <div className="photobook-main-content">
@@ -225,6 +242,12 @@ export default function Photobook() {
                     </PrimaryButton>
                 </div>
             </div>
+
+            <LayoutSelector
+                isOpen={showLayoutSelector}
+                onClose={() => setShowLayoutSelector(false)}
+                onSelectLayout={handleAddPage}
+            />
         </div>
     );
 }
