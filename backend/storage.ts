@@ -86,21 +86,22 @@ export class DemoStorage {
         return this.storage.get(key) || null;
     }
 
-    addImageToPhotoBook(key: string, imageData: string, x: number, y: number, width: number, height: number, dropZoneIndex: number): void {
-        console.log(`Attempting to add image to photobook ${key}`);
+    addImageToPhotoBook(key: string, imageData: string, x: number, y: number, width: number, height: number, dropZoneIndex: number, pageNumber: number = 1): void {
+        console.log(`Attempting to add image to photobook ${key}, page ${pageNumber}`);
         const photoBook = this.storage.get(key);
         if (photoBook) {
             console.log(`Found photobook: ${photoBook.title}`);
-            // Ensure we have at least one page
-            if (photoBook.pages.length === 0) {
-                console.log('Creating new page');
+            
+            // Ensure we have enough pages
+            while (photoBook.pages.length < pageNumber) {
+                console.log(`Creating new page ${photoBook.pages.length + 1}`);
                 const newPage = new Page();
-                newPage.page = 1;
+                newPage.page = photoBook.pages.length + 1;
                 newPage.arrangement = PageArrangement.TRIPLE;
                 photoBook.pages.push(newPage);
             }
             
-            const currentPage = photoBook.pages[0]; // For now, just use the first page
+            const currentPage = photoBook.pages[pageNumber - 1]; // Pages are 0-indexed in array
             
             // Remove any existing image in this dropzone first
             currentPage.images = currentPage.images.filter(img => img.dropZoneIndex !== dropZoneIndex);
@@ -115,19 +116,19 @@ export class DemoStorage {
         }
     }
 
-    removeImageFromPhotoBook(key: string, dropZoneIndex: number): void {
-        console.log(`Attempting to remove image from photobook ${key}, dropzone ${dropZoneIndex}`);
+    removeImageFromPhotoBook(key: string, dropZoneIndex: number, pageNumber: number = 1): void {
+        console.log(`Attempting to remove image from photobook ${key}, page ${pageNumber}, dropzone ${dropZoneIndex}`);
         const photoBook = this.storage.get(key);
-        if (photoBook && photoBook.pages.length > 0) {
-            const currentPage = photoBook.pages[0];
+        if (photoBook && photoBook.pages.length >= pageNumber) {
+            const currentPage = photoBook.pages[pageNumber - 1]; // Pages are 0-indexed in array
             const initialCount = currentPage.images.length;
             currentPage.images = currentPage.images.filter(img => img.dropZoneIndex !== dropZoneIndex);
             const finalCount = currentPage.images.length;
             
-            console.log(`Removed ${initialCount - finalCount} image(s) from dropzone ${dropZoneIndex}`);
+            console.log(`Removed ${initialCount - finalCount} image(s) from page ${pageNumber}, dropzone ${dropZoneIndex}`);
             console.log(`Total images on page: ${finalCount}`);
         } else {
-            console.log(`Photobook not found for key: ${key}`);
+            console.log(`Photobook not found for key: ${key} or page ${pageNumber} doesn't exist`);
         }
     }
 

@@ -93,7 +93,7 @@ app.post('/upload', (req, res) => {
         }
         
         // Extract coordinates and dimensions
-        const { x, y, width, height, dropZoneIndex } = coords;
+        const { x, y, width, height, dropZoneIndex, pageNumber } = coords;
         
         // Use the dropzone index from the frontend, fallback to coordinate-based detection
         let finalDropZoneIndex = dropZoneIndex ?? 0;
@@ -103,8 +103,10 @@ app.post('/upload', (req, res) => {
             if (y > 400) finalDropZoneIndex = 2; // Bottom dropzone
         }
         
+        const finalPageNumber = pageNumber ?? 1;
+        
         // Store the image with its placement data
-        storage.addImageToPhotoBook(photobookId, img, x, y, width, height, finalDropZoneIndex);
+        storage.addImageToPhotoBook(photobookId, img, x, y, width, height, finalDropZoneIndex, finalPageNumber);
         
         console.log(`Image uploaded to photobook ${photobookId} at dropzone ${finalDropZoneIndex}`);
         res.json({ success: true, dropZoneIndex: finalDropZoneIndex });

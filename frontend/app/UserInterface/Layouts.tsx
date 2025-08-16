@@ -5,10 +5,12 @@ type DropCoords = { x: number, y: number, width: number, height: number };
 
 export function HorizontalTripplet({
     onImageDropped, 
-    onImageRemoved
+    onImageRemoved,
+    initialImages = {}
 }: { 
     onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
-    onImageRemoved?: (dropZoneIndex: number) => void
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
 }) {
     return (
         <div className='column' style={{paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
@@ -23,6 +25,7 @@ export function HorizontalTripplet({
                         onImageRemoved?.(0);
                         console.log("Image removed from top-left");
                     }}
+                    initialImage={initialImages[0]}
                 />
                 <Dropzone 
                     onImageDropped={(file: File, coords?: {x: number, y: number}, dimensions?: {width: number, height: number}) => {
@@ -34,6 +37,7 @@ export function HorizontalTripplet({
                         onImageRemoved?.(1);
                         console.log("Image removed from top-right");
                     }}
+                    initialImage={initialImages[1]}
                 />
             </div>
             <Dropzone 
@@ -47,6 +51,7 @@ export function HorizontalTripplet({
                     onImageRemoved?.(2);
                     console.log("Image removed from bottom");
                 }}
+                initialImage={initialImages[2]}
             />
         </div>
     );

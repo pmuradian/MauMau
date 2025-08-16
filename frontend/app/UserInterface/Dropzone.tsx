@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import './Styles/paper.css';
 import './Styles/dropzone.css';
 import { useDropzone } from 'react-dropzone'
@@ -22,14 +22,25 @@ export class File {
 }
 
 export function Dropzone(
-    { aspectRatio = '1', onImageDropped = () => { }, onImageRemoved = () => { } }: {
+    { aspectRatio = '1', onImageDropped = () => { }, onImageRemoved = () => { }, initialImage }: {
         aspectRatio?: string,
         onImageDropped?: (file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => void,
-        onImageRemoved?: () => void
+        onImageRemoved?: () => void,
+        initialImage?: string
     }
 ) {
 
     const [file, setFile] = useState<File | null>(null);
+
+    // Set initial image if provided
+    useEffect(() => {
+        if (initialImage) {
+            const initialFile = new File(initialImage, new Blob(), initialImage);
+            setFile(initialFile);
+        } else {
+            setFile(null);
+        }
+    }, [initialImage]);
     const onDrop = useCallback((acceptedFiles: (Blob)[], event?: any) => {
         const file = acceptedFiles[acceptedFiles.length - 1];
         const image = new File(URL.createObjectURL(file), file, URL.createObjectURL(file));

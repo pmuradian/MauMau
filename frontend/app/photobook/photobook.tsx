@@ -11,18 +11,36 @@ class PhotobookData {
     constructor(
         public title: string = "",
         public description: string = "",
-        public images: string[] = []
+        public images: string[] = [],
+        public pages: PageData[] = []
+    ) { }
+}
+
+class PageData {
+    constructor(
+        public pageNumber: number,
+        public images: { [dropZoneIndex: number]: string } = {}
     ) { }
 }
 
 export default function Photobook() {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const [data, setData] = useState({} as PhotobookData);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState("");
     const [selectedPage, setSelectedPage] = useState(1);
+    const [pageData, setPageData] = useState<{ [pageNumber: number]: PageData }>({});
     const [totalPages, setTotalPages] = useState(3); // Default to 3 pages for now
     const photobookKey = searchParams.get("key") || "";
+
+    // Initialize page data for all pages
+    useEffect(() => {
+        const initialPageData: { [pageNumber: number]: PageData } = {};
+        for (let i = 1; i <= totalPages; i++) {
+            initialPageData[i] = new PageData(i);
+        }
+        setPageData(initialPageData);
+    }, [totalPages]);
 
     useEffect(() => {
         if (photobookKey) {
@@ -32,7 +50,8 @@ export default function Photobook() {
                     setData(new PhotobookData(
                         response.title || "Untitled Photobook",
                         response.description || "No description available",
-                        response.images || []
+                        response.images || [],
+                        response.pages || []
                     ));
                 })
                 .catch((error) => {
@@ -125,29 +144,57 @@ export default function Photobook() {
                 <div className="photobook-paper-container">
                     <A4Portrait>
                         <HorizontalTripplet 
+                            key={selectedPage} // Force re-render when page changes
                             onImageDropped={(file: File, coords, dropZoneIndex) => {
-                                console.log("Image dropped:", file, coords, "in dropzone:", dropZoneIndex);
+                                console.log(`Image dropped on page ${selectedPage}:`, file, coords, "in dropzone:", dropZoneIndex);
                                 var reader = new FileReader();
                                 reader.readAsDataURL(file.data);
                                 reader.onload = () => {
-                                    // Include dropzone index in the coordinates
-                                    const coordsWithDropzone = { ...coords, dropZoneIndex };
-                                    uploadImage(photobookKey, reader.result as string, coordsWithDropzone);
+                                    // Include page number and dropzone index in the coordinates
+                                    const coordsWithDropzone = { ...coords, dropZoneIndex, pageNumber: selectedPage };
+                                    uploadImage(photobookKey, reader.result as string, coordsWithDropzone)
+                                        .then(() => {
+                                            // Update local page data
+                                            setPageData(prev => ({
+                                                ...prev,
+                                                [selectedPage]: {
+                                                    ...prev[selectedPage],
+                                                    images: {
+                                                        ...prev[selectedPage]?.images,
+                                                        [dropZoneIndex]: reader.result as string
+                                                    }
+                                                }
+                                            }));
+                                        });
                                 };
                                 reader.onerror = error => {
                                     console.log("Error: ", error);
                                 };
                             }}
                             onImageRemoved={(dropZoneIndex) => {
-                                console.log("Removing image from dropzone:", dropZoneIndex);
+                                console.log(`Removing image from page ${selectedPage}, dropzone:`, dropZoneIndex);
                                 removeImage(photobookKey, dropZoneIndex)
                                     .then(() => {
                                         console.log("Image removed successfully");
+                                        // Update local page data
+                                        setPageData(prev => {
+                                            const newPageData = { ...prev };
+                                            if (newPageData[selectedPage]) {
+                                                const newImages = { ...newPageData[selectedPage].images };
+                                                delete newImages[dropZoneIndex];
+                                                newPageData[selectedPage] = {
+                                                    ...newPageData[selectedPage],
+                                                    images: newImages
+                                                };
+                                            }
+                                            return newPageData;
+                                        });
                                     })
                                     .catch((error) => {
                                         console.error("Error removing image:", error);
                                     });
                             }}
+                            initialImages={pageData[selectedPage]?.images || {}}
                         />
                     </A4Portrait>
                 </div>
@@ -211,10 +258,12 @@ function SideContent({
                         >
                             <div className="photobook-page-number">{pageNumber}</div>
                             <div className="photobook-page-preview">
-                                {/* Mini preview of the page layout */}
+                                {/* Mini preview matching HorizontalTripplet layout */}
                                 <div className="mini-layout">
-                                    <div className="mini-dropzone"></div>
-                                    <div className="mini-dropzone"></div>
+                                    <div className="mini-row">
+                                        <div className="mini-dropzone"></div>
+                                        <div className="mini-dropzone"></div>
+                                    </div>
                                     <div className="mini-dropzone wide"></div>
                                 </div>
                             </div>
