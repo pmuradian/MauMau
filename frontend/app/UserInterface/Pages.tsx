@@ -8,7 +8,17 @@ type A4PortraitProps = {
 
 export const A4Portrait = ({ children }: A4PortraitProps) => {
   return (
-    <div className="paperA4Portrait" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
+    <div className="paperA4Portrait" style={{ 
+      height: 'auto', 
+      maxHeight: '80vh',
+      width: 'auto',
+      maxWidth: '60vw',
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      position: 'relative',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+      borderRadius: '8px'
+    }}>
       <div className="p-4">
         {children}
       </div>

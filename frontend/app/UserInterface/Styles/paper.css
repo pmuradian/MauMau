@@ -18,8 +18,7 @@
 .paperA4Portrait {
     aspect-ratio: 0.7071;
     background-color: white;
-    border-width: 2px;
-    border-color: black;
+    border: 1px solid #e0e0e0;
 }
 
 .paperA4Landscape {

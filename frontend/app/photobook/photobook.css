@@ -1,0 +1,113 @@
+.photobook-container {
+    min-height: 100vh;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    padding: 24px;
+}
+
+.photobook-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 80px;
+}
+
+.photobook-page-thumbnail {
+    width: 60px;
+    aspect-ratio: 0.7071; /* A4 aspect ratio */
+    background-color: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.photobook-page-thumbnail:hover {
+    border-color: #007acc;
+    background-color: #f0f8ff;
+}
+
+.photobook-page-thumbnail.active {
+    border-color: #007acc;
+    background-color: #e6f3ff;
+}
+
+.photobook-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 0 24px;
+}
+
+.photobook-paper-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.photobook-controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.photobook-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    text-align: center;
+    transition: color 0.2s ease;
+}
+
+.photobook-title:hover {
+    color: #007acc;
+}
+
+.photobook-title-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    justify-content: center;
+}
+
+.photobook-title-input {
+    font-size: 24px;
+    font-weight: 600;
+    border: 2px solid #007acc;
+    border-radius: 4px;
+    padding: 4px 8px;
+    outline: none;
+    text-align: center;
+}
+
+.photobook-title-button {
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.photobook-title-button.save {
+    background: #007acc;
+    color: white;
+}
+
+.photobook-title-button.cancel {
+    background: #ccc;
+    color: #333;
+}
+
+.photobook-description {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 24px;
+}
