@@ -20,6 +20,8 @@ export default function Photobook() {
     const [data, setData] = useState({} as PhotobookData);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState("");
+    const [selectedPage, setSelectedPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(3); // Default to 3 pages for now
     const photobookKey = searchParams.get("key") || "";
 
     useEffect(() => {
@@ -58,7 +60,12 @@ export default function Photobook() {
 
     return (
         <div className="photobook-container">
-            <SideContent />
+            <SideContent 
+                selectedPage={selectedPage}
+                totalPages={totalPages}
+                onPageSelect={setSelectedPage}
+                onAddPage={() => setTotalPages(prev => prev + 1)}
+            />
 
             <div className="photobook-main-content">
                 {data.title && (
@@ -109,6 +116,9 @@ export default function Photobook() {
                             </h1>
                         )}
                         <p className="photobook-description">{data.description}</p>
+                        <div className="photobook-page-indicator">
+                            Page {selectedPage} of {totalPages}
+                        </div>
                     </div>
                 )}
 
@@ -172,18 +182,55 @@ export default function Photobook() {
     );
 }
 
-function SideContent() {
+function SideContent({ 
+    selectedPage, 
+    totalPages, 
+    onPageSelect, 
+    onAddPage 
+}: {
+    selectedPage: number;
+    totalPages: number;
+    onPageSelect: (page: number) => void;
+    onAddPage: () => void;
+}) {
     return (
         <div className="photobook-sidebar">
-            <div className="photobook-page-thumbnail active" title="Page 1"></div>
-            <div className="photobook-page-thumbnail" title="Page 2"></div>
-            <div className="photobook-page-thumbnail" title="Page 3"></div>
+            <div className="photobook-sidebar-header">
+                <h3>Pages</h3>
+            </div>
+            
+            <div className="photobook-pages-container">
+                {Array.from({ length: totalPages }, (_, index) => {
+                    const pageNumber = index + 1;
+                    return (
+                        <div
+                            key={pageNumber}
+                            className={`photobook-page-thumbnail ${selectedPage === pageNumber ? 'active' : ''}`}
+                            title={`Page ${pageNumber}`}
+                            onClick={() => onPageSelect(pageNumber)}
+                        >
+                            <div className="photobook-page-number">{pageNumber}</div>
+                            <div className="photobook-page-preview">
+                                {/* Mini preview of the page layout */}
+                                <div className="mini-layout">
+                                    <div className="mini-dropzone"></div>
+                                    <div className="mini-dropzone"></div>
+                                    <div className="mini-dropzone wide"></div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
 
-            <PrimaryButton onClick={() => {
-                console.log("Add page clicked");
-            }}>
-                Add Page
-            </PrimaryButton>
+            <div className="photobook-sidebar-actions">
+                <PrimaryButton onClick={() => {
+                    console.log("Add page clicked");
+                    onAddPage();
+                }}>
+                    Add Page
+                </PrimaryButton>
+            </div>
         </div>
     );
 }
