@@ -114,7 +114,6 @@
 .layout-preview.a4 {
     height: 100%;
     width: auto;
-    aspect-ratio: 0.7071; /* width / height for A4 portrait */
 }
 
 .layout-preview.horizontal {
@@ -214,4 +213,13 @@
 
 .confirm-button:hover {
     background: #0056b3;
+}
+
+/* Override generic preview sizing inside the option preview to enforce A4 ratio */
+.layout-option-preview .layout-preview { width: auto; height: auto; }
+.layout-option-preview .layout-preview.a4 {
+    height: 100%;
+    width: auto !important; /* override any width:100% from base rule */
+    box-sizing: border-box; /* include padding within the box */
+    padding: 8px;
 }

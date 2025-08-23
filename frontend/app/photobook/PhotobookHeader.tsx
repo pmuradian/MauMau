@@ -24,7 +24,7 @@ export default function PhotobookHeader({
   totalPages: number;
 }) {
   return (
-    <div>
+    <div className="photobook-header-container">
       {isEditingTitle ? (
         <div className="photobook-title-edit-container">
           <input

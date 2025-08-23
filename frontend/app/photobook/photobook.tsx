@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { viewPhotobook, updatePhotobookTitle } from "networking/NetworkService";
 import { LayoutSelector, type LayoutType } from "UserInterface/LayoutSelector";
 import SideContent from "./SideContent";
-import PhotobookHeader from "./PhotobookHeader";
 import PhotobookPage from "./PhotobookPage";
 import PhotobookControls from "./PhotobookControls";
 import { PhotobookData, PageData } from "./types";
@@ -104,29 +103,23 @@ export default function Photobook() {
         onPageSelect={setSelectedPage}
         onAddPage={() => setShowLayoutSelector(true)}
         pageLayouts={pageLayouts}
+        title={data.title}
+        description={data.description}
+        isEditingTitle={isEditingTitle}
+        editedTitle={editedTitle}
+        onEditedTitleChange={setEditedTitle}
+        onSaveTitle={handleSaveTitle}
+        onBeginEdit={() => {
+          setIsEditingTitle(true);
+          setEditedTitle(data.title);
+        }}
+        onCancelEdit={() => {
+          setIsEditingTitle(false);
+          setEditedTitle(data.title);
+        }}
       />
 
       <div className="photobook-main-content">
-        {data.title && (
-          <PhotobookHeader
-            title={data.title}
-            description={data.description}
-            isEditingTitle={isEditingTitle}
-            editedTitle={editedTitle}
-            onEditedTitleChange={setEditedTitle}
-            onSaveTitle={handleSaveTitle}
-            onBeginEdit={() => {
-              setIsEditingTitle(true);
-              setEditedTitle(data.title);
-            }}
-            onCancelEdit={() => {
-              setIsEditingTitle(false);
-              setEditedTitle(data.title);
-            }}
-            selectedPage={selectedPage}
-            totalPages={totalPages}
-          />
-        )}
 
         <PhotobookPage
           photobookKey={photobookKey}

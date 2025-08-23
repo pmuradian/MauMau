@@ -1,8 +1,26 @@
-.paper {
-  aspect-ratio: 210 / 297;
+/* Unified A4 page style */
+.a4-page {
+  aspect-ratio: 0.7071; /* A4 portrait ratio */
   background-color: white;
-  border-width: 2px;
-  border-color: black;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Main page variant that fills 80% of viewport height */
+.a4-page.main-page {
+  height: 80vh;
+  width: auto; /* Let width be calculated from aspect ratio */
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.a4-page .paper-content {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
 }
 
 .primaryButton {
@@ -13,29 +31,6 @@
 .secondaryButton {
   background-color: #DC778A;
   color: white;
-}
-
-.paperA4Portrait {
-  aspect-ratio: 0.7071;
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  margin: 0 auto;
-}
-
-.paperA4Landscape {
-  aspect-ratio: 1.4142;
-  background-color: white;
-  border-width: 2px;
-  border-color: black;
-  margin: 0 auto;
-}
-
-.square {
-  aspect-ratio: 1;
-  background-color: white;
-  border-width: 2px;
-  border-color: black;
-  margin: 0 auto;
 }
 
 .child {

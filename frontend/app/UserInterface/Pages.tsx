@@ -3,23 +3,13 @@ import './Styles/paper.css';
 import type { ReactNode } from 'react';
 
 type A4PortraitProps = {
-    children?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 export const A4Portrait = ({ children }: A4PortraitProps) => {
   return (
-    <div className="paperA4Portrait" style={{ 
-      height: '80vh',
-      width: 'auto',
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      position: 'relative',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-      borderRadius: '8px',
-      overflow: 'hidden',
-      display: 'flex'
-    }}>
-      <div className="p-4" style={{ width: '100%', height: '100%' }}>
+    <div className="a4-page main-page">
+      <div className="paper-content">
         {children}
       </div>
     </div>
@@ -28,8 +18,8 @@ export const A4Portrait = ({ children }: A4PortraitProps) => {
 
 export const A4Landscape = (children: ReactNode) => {
   return (
-    <div className="paperA4Landscape" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
-      <div className="p-4">
+    <div className="a4-page" style={{ aspectRatio: '1.4142' }}>
+      <div className="paper-content">
         {children}
       </div>
     </div>
@@ -38,8 +28,8 @@ export const A4Landscape = (children: ReactNode) => {
 
 export const Square = (children: ReactNode) => {
   return (
-    <div className="square" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
-      <div className="p-4">
+    <div className="a4-page" style={{ aspectRatio: '1' }}>
+      <div className="paper-content">
         {children}
       </div>
     </div>
@@ -47,8 +37,8 @@ export const Square = (children: ReactNode) => {
 };
 export const PageFormat = (className = "", children: ReactNode) => {
   return (
-    <div className="${className}" style={{ height: '80%', justifyContent: 'center', alignItems: 'center' , position: 'relative' }}>
-      <div className="p-4">
+    <div className={className} style={{ height: '80%', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <div className="paper-content">
         {children}
       </div>
     </div>
