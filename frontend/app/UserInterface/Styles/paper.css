@@ -23,29 +23,7 @@
   padding: 16px;
 }
 
-.primaryButton {
-  background-color: #dc9777;
-  color: white;
-}
 
-.secondaryButton {
-  background-color: #DC778A;
-  color: white;
-}
-
-.child {
-  aspect-ratio: 210 / 297;
-  width: 10px;
-  background: rgb(183, 236, 218);
-  border-width: 1px;
-  border-color: black;
-}
-
-.childBorder {
-  background: rgb(138, 235, 202);
-  border-width: 1px;
-  border-color: black;
-}
 
 .row {
   display: flex;
