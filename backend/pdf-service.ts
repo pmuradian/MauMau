@@ -8,7 +8,7 @@ export class PDFService {
     
     // Frontend layout dimensions (matching your CSS exactly)
     private static readonly TAILWIND_P4 = 16; // p-4 = 16px in Tailwind
-    private static readonly PADDING_TOP_PERCENT = 0.12; // 12% padding top from HorizontalTripplet
+    private static readonly PADDING_TOP_PERCENT = 0.12; // 12% padding top from HorizontalTriplet
     private static readonly GAP = 10; // 10px gap from CSS
     
     // Convert pixels to points (72 points per inch, 96 pixels per inch)
@@ -59,7 +59,7 @@ export class PDFService {
     private static renderPage(doc: PDFKit.PDFDocument, page: any) {
         // Account for all frontend padding layers:
         // 1. A4Portrait has p-4 (16px padding on all sides)
-        // 2. HorizontalTripplet has paddingTop: '12%'
+        // 2. HorizontalTriplet has paddingTop: '12%'
         // 3. CSS gaps of 10px between elements
         
         const p4Padding = this.pxToPoints(this.TAILWIND_P4);
@@ -68,7 +68,7 @@ export class PDFService {
         const availableWidth = this.A4_WIDTH - (2 * p4Padding);
         const availableHeight = this.A4_HEIGHT - (2 * p4Padding);
         
-        // HorizontalTripplet 12% top padding within the available area
+        // HorizontalTriplet 12% top padding within the available area
         const tripletTopPadding = availableHeight * this.PADDING_TOP_PERCENT;
         
         // Content area for the triplet layout
@@ -79,7 +79,7 @@ export class PDFService {
         
         const gapPoints = this.pxToPoints(this.GAP);
         
-        // HorizontalTripplet layout calculation:
+        // HorizontalTriplet layout calculation:
         // Top row: two equal dropzones with gap between them
         // Bottom: one dropzone with 1.5 aspect ratio and gap above
         

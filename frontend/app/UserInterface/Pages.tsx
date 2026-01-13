@@ -44,5 +44,3 @@ export const PageFormat = (className = "", children: ReactNode) => {
     </div>
   );
 }
-
-// export default { A4Rectangle, A4Portrait, A4Landscape, Square };

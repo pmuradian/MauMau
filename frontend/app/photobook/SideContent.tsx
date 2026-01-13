@@ -1,6 +1,8 @@
-import { useEffect, useRef } from "react";
-import { PrimaryButton } from "../UserInterface/UserInterfaceComponents";
+import { useEffect, useRef, type CSSProperties } from "react";
+import { PrimaryButton } from "../UserInterface/Buttons";
 import { type LayoutType } from "UserInterface/LayoutSelector";
+import { HorizontalTriplet, HorizontalTuple, SinglePage, VerticalTriplet, VerticalTuple } from "UserInterface/Layouts";
+import { PreviewHorizontalTriplet, PreviewVerticalTuple, PreviewSinglePage, PreviewHorizontalTuple } from "UserInterface/PreviewLayouts";
 
 interface SideContentProps {
     selectedPage: number;
@@ -18,20 +20,64 @@ interface SideContentProps {
     onCancelEdit?: () => void;
 }
 
+const styles: { [key: string]: CSSProperties } = {
+    sidebar: {
+        display: "flex",
+        flexDirection: "column",
+        background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
+        padding: 16,
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+        border: "1px solid #dee2e6",
+        position: "sticky",
+        height: "100vh",
+        width: 250,
+        flexShrink: 0,
+        overflow: "hidden",
+    },
+    pagesContainer: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        flex: 1,
+        overflowY: "auto",
+        paddingRight: 8,
+        minHeight: 0,
+    },
+    pagePreview: {
+        width: "100%",
+        aspectRatio: "0.7071",
+        backgroundColor: "white",
+        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
+        flexShrink: 0,
+    },
+    sidebarActions: {
+        paddingTop: 16,
+        borderTop: "2px solid #dee2e6",
+        flexShrink: 0,
+    },
+};
+
+const renderMiniPreview = (layout: LayoutType) => {
+    const layouts = {
+        'horizontal-triplet': <PreviewHorizontalTriplet />,
+        'vertical-arrangement': <PreviewVerticalTuple />,
+        'horizontal-arrangement': <PreviewHorizontalTuple />,
+        'single-image': <PreviewSinglePage />
+    };
+
+    return layouts[layout];
+};
+
 export default function SideContent({
     selectedPage,
     totalPages,
     onPageSelect,
     onAddPage,
     pageLayouts,
-    title,
-    description,
-    isEditingTitle,
-    editedTitle,
-    onEditedTitleChange,
-    onSaveTitle,
-    onBeginEdit,
-    onCancelEdit
 }: SideContentProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedPageRef = useRef<HTMLDivElement>(null);
@@ -48,119 +94,21 @@ export default function SideContent({
         container.scrollTo({ top: scrollTop, behavior: 'smooth' });
     }, [selectedPage]);
 
-    const renderMiniPreview = (layout: LayoutType) => {
-        const layouts = {
-            'horizontal-triplet': (
-                <div className="a4-page mini-layout">
-                    <div className="mini-row">
-                        <div className="mini-dropzone" />
-                        <div className="mini-dropzone" />
-                    </div>
-                    <div className="mini-dropzone wide" />
-                </div>
-            ),
-            'vertical-triplet': (
-                <div className="a4-page mini-layout vsplit">
-                    <div className="mini-column">
-                        <div className="mini-dropzone" />
-                        <div className="mini-dropzone" />
-                    </div>
-                    <div className="mini-dropzone large" />
-                </div>
-            ),
-            'vertical-arrangement': (
-                <div className="a4-page mini-layout vertical">
-                    <div className="mini-dropzone" />
-                    <div className="mini-dropzone" />
-                </div>
-            ),
-            'horizontal-arrangement': (
-                <div className="a4-page mini-layout horizontal">
-                    <div className="mini-dropzone" />
-                    <div className="mini-dropzone" />
-                </div>
-            ),
-            'single-image': (
-                <div className="a4-page mini-layout">
-                    <div className="mini-dropzone" />
-                </div>
-            )
-        };
-
-        return layouts[layout] || layouts['horizontal-triplet'];
-    };
-
     return (
-        <div className="photobook-sidebar">
-            <div className="photobook-sidebar-header">
-                {title && (
-                    <div className="photobook-header-in-sidebar">
-                        {isEditingTitle ? (
-                            <div className="photobook-title-edit-container">
-                                <input
-                                    type="text"
-                                    value={editedTitle}
-                                    onChange={(e) => onEditedTitleChange?.(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            onSaveTitle?.();
-                                        } else if (e.key === "Escape") {
-                                            onCancelEdit?.();
-                                        }
-                                    }}
-                                    className="photobook-title-input"
-                                    autoFocus
-                                />
-                                <div className="photobook-title-buttons">
-                                    <button onClick={onSaveTitle} className="photobook-title-button save">
-                                        Save
-                                    </button>
-                                    <button onClick={onCancelEdit} className="photobook-title-button cancel">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <h1
-                                className="photobook-title"
-                                onClick={onBeginEdit}
-                                title="Click to edit title"
-                            >
-                                {title}
-                            </h1>
-                        )}
-                        {description && <p className="photobook-description">{description}</p>}
-                        <div className="photobook-page-indicator">
-                            Page {selectedPage} of {totalPages}
-                        </div>
-                    </div>
-                )}
-                <h3>Pages</h3>
-            </div>
-
-            <div className="photobook-pages-container" ref={containerRef}>
+        <div style={styles.sidebar}>
+            <div style={styles.pagesContainer} ref={containerRef}>
                 {Array.from({ length: totalPages }, (_, index) => {
                     const pageNumber = index + 1;
-                    const layout = pageLayouts[pageNumber] ?? 'horizontal-triplet';
-                    const isSelected = selectedPage === pageNumber;
+                    const layout = pageLayouts[pageNumber];
                     return (
-                        <div
-                            key={pageNumber}
-                            ref={isSelected ? selectedPageRef : null}
-                            className={`a4-page photobook-page-thumbnail${isSelected ? '-active' : ''}`}
-                            title={`Page ${pageNumber}`}
-                            onClick={() => onPageSelect(pageNumber)}
-                        >
-                            <div className="photobook-page-number">{pageNumber}</div>
-                            <div className="photobook-page-preview">
-                                {renderMiniPreview(layout)}
-                            </div>
+                        <div key={pageNumber} style={styles.pagePreview}>
+                            {renderMiniPreview(layout)}
                         </div>
                     );
                 })}
             </div>
 
-            <div className="photobook-sidebar-actions">
+            <div style={styles.sidebarActions}>
                 <PrimaryButton onClick={onAddPage}>
                     Add Page
                 </PrimaryButton>

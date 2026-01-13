@@ -1,11 +1,11 @@
 import React from "react";
 import { A4Portrait } from "UserInterface/Pages";
 import {
-  HorizontalTripplet,
-  VerticalTripplet,
-  VerticalArrangement,
-  HorizontalArrangement,
-  SingleImageLayout,
+  HorizontalTriplet,
+  VerticalTriplet,
+  VerticalTuple,
+  HorizontalTuple,
+  SinglePage,
 } from "UserInterface/Layouts";
 import { File } from "UserInterface/Dropzone";
 import { uploadImage, removeImage } from "networking/NetworkService";
@@ -62,7 +62,7 @@ export default function PhotobookPage({
     switch (layout) {
       case "horizontal-triplet":
         return (
-          <HorizontalTripplet
+          <HorizontalTriplet
             key={selectedPage}
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
@@ -71,7 +71,7 @@ export default function PhotobookPage({
         );
       case "vertical-triplet":
         return (
-          <VerticalTripplet
+          <VerticalTriplet
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}
@@ -79,7 +79,7 @@ export default function PhotobookPage({
         );
       case "vertical-arrangement":
         return (
-          <VerticalArrangement
+          <VerticalTuple
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}
@@ -87,7 +87,7 @@ export default function PhotobookPage({
         );
       case "horizontal-arrangement":
         return (
-          <HorizontalArrangement
+          <HorizontalTuple
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}
@@ -95,7 +95,7 @@ export default function PhotobookPage({
         );
       case "single-image":
         return (
-          <SingleImageLayout
+          <SinglePage
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}

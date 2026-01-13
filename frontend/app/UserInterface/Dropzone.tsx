@@ -21,6 +21,40 @@ export class File {
     }
 }
 
+export function PreviewDropzone( { aspectRatio = '1', initialImage }: {
+        aspectRatio?: string,
+        initialImage?: string
+    }) {
+    const [file, setFile] = useState<File | null>(null);
+
+        useEffect(() => {
+        if (initialImage) {
+            const initialFile = new File(initialImage, new Blob(), initialImage);
+            setFile(initialFile);
+        } else {
+            setFile(null);
+        }
+    }, [initialImage]);
+
+        return (
+        <div style={{ aspectRatio: aspectRatio, width: '100%', backgroundColor: 'red'}}>
+            {/* {file ? (
+                <div className="dropzone-image-container">
+                    <img
+                        src={file.preview}
+                        className="dropzone-image"
+                        onError={(e) => {
+                            console.error("Error loading image preview:", e);
+                        }}
+                    />
+                </div>
+            ) : ( */}
+                <div style={{ width: '100%', height: '100%' }}></div>
+            {/* )} */}
+        </div>
+    )
+}
+
 export function Dropzone(
     { aspectRatio = '1', onImageDropped = () => { }, onImageRemoved = () => { }, initialImage }: {
         aspectRatio?: string,

@@ -1,4 +1,4 @@
-import { PrimaryButton, SecondaryButton } from "../UserInterface/UserInterfaceComponents";
+import { PrimaryButton, SecondaryButton } from "../UserInterface/Buttons";
 import { createPhotobook, viewPhotobook } from "networking/NetworkService";
 import { useNavigate } from "react-router-dom";
 

@@ -3,7 +3,7 @@ import { File } from "./Dropzone"
 
 type DropCoords = { x: number, y: number, width: number, height: number };
 
-export function HorizontalTripplet({
+export function HorizontalTriplet({
     onImageDropped,
     onImageRemoved,
     initialImages = {}
@@ -13,7 +13,7 @@ export function HorizontalTripplet({
     initialImages?: { [dropZoneIndex: number]: string }
 }) {
     return (
-        <div className='column' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+        <div className='column' style={{ width: '100%', display: 'flex', flex: '1' }}>
             <div className='row' style={{ width: '100%', display: 'flex', flex: '1' }}>
                 <Dropzone
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
@@ -57,7 +57,7 @@ export function HorizontalTripplet({
     );
 }
 
-export function VerticalTripplet({
+export function VerticalTriplet({
     onImageDropped,
     onImageRemoved,
     initialImages = {}
@@ -67,7 +67,7 @@ export function VerticalTripplet({
     initialImages?: { [dropZoneIndex: number]: string }
 }) {
     return (
-        <div className='row' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+        <div className='row' style={{ width: '100%', display: 'flex', flex: '1' }}>
             <div className='column' style={{ width: '50%', display: 'flex', flex: '1' }}>
                 <Dropzone
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
@@ -98,7 +98,7 @@ export function VerticalTripplet({
     );
 }
 
-export function VerticalArrangement({
+export function VerticalTuple({
     onImageDropped,
     onImageRemoved,
     initialImages = {}
@@ -108,7 +108,40 @@ export function VerticalArrangement({
     initialImages?: { [dropZoneIndex: number]: string }
 }) {
     return (
-        <div className='column' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+        <div className='column' style={{ paddingBottom: '12%', paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+            <Dropzone
+            aspectRatio='1.5'
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 0);
+                }}
+                onImageRemoved={() => onImageRemoved?.(0)}
+                initialImage={initialImages[0]}
+            />
+            <Dropzone
+            aspectRatio='1.5'
+                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
+                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
+                    onImageDropped?.(file, merged, 1);
+                }}
+                onImageRemoved={() => onImageRemoved?.(1)}
+                initialImage={initialImages[1]}
+            />
+        </div>
+    );
+}
+
+export function HorizontalTuple({
+    onImageDropped,
+    onImageRemoved,
+    initialImages = {}
+}: {
+    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
+    onImageRemoved?: (dropZoneIndex: number) => void,
+    initialImages?: { [dropZoneIndex: number]: string }
+}) {
+    return (
+        <div className='row' style={{ width: '100%', display: 'flex', flex: '1', gap: 8 }}>
             <Dropzone
                 onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                     const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
@@ -129,7 +162,7 @@ export function VerticalArrangement({
     );
 }
 
-export function HorizontalArrangement({
+export function SinglePage({
     onImageDropped,
     onImageRemoved,
     initialImages = {}
@@ -139,38 +172,7 @@ export function HorizontalArrangement({
     initialImages?: { [dropZoneIndex: number]: string }
 }) {
     return (
-        <div className='row' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1', gap: 8 }}>
-            <Dropzone
-                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
-                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
-                    onImageDropped?.(file, merged, 0);
-                }}
-                onImageRemoved={() => onImageRemoved?.(0)}
-                initialImage={initialImages[0]}
-            />
-            <Dropzone
-                onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
-                    const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
-                    onImageDropped?.(file, merged, 1);
-                }}
-                onImageRemoved={() => onImageRemoved?.(1)}
-                initialImage={initialImages[1]}
-            />
-        </div>
-    );
-}
-
-export function SingleImageLayout({
-    onImageDropped,
-    onImageRemoved,
-    initialImages = {}
-}: {
-    onImageDropped?: (file: File, coords: DropCoords, dropZoneIndex: number) => void,
-    onImageRemoved?: (dropZoneIndex: number) => void,
-    initialImages?: { [dropZoneIndex: number]: string }
-}) {
-    return (
-        <div className='column' style={{ paddingTop: '12%', width: '100%', display: 'flex', flex: '1' }}>
+        <div style={{ width: '100%', height: '100%', display: 'flex', flex: '1' }}>
             <Dropzone
                 onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                     const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };

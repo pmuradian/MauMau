@@ -27,7 +27,7 @@ The project is divided into two main parts:
 ## Components
 
 - **Dropzone**: Handles image uploads with preview functionality
-- **Layouts**: Various layout templates (HorizontalTripplet, VerticalTripplet, etc.)
+- **Layouts**: Various layout templates (HorizontalTriplet, VerticalTriplet, etc.)
 - **Pages**: Page templates like A4Portrait for standard printing formats
 - **NetworkService**: API communication with the backend
 

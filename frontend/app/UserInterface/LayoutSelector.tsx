@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import './Styles/layout-selector.css';
+import './Styles/layout-previews.css';
+import './Styles/paper.css';
 
 export type LayoutType = 'horizontal-triplet' | 'vertical-triplet' | 'vertical-arrangement' | 'horizontal-arrangement' | 'single-image';
 
@@ -17,11 +19,11 @@ const layoutOptions: LayoutOption[] = [
         description: 'Two images on top, one wide image below',
         preview: (
             <div className="layout-preview a4">
-                <div className="preview-row">
-                    <div className="preview-dropzone"></div>
-                    <div className="preview-dropzone"></div>
+                <div className="row">
+                    <div className="layout-preview-dropzone"></div>
+                    <div className="layout-preview-dropzone"></div>
                 </div>
-                <div className="preview-dropzone wide"></div>
+                <div className="layout-preview-dropzone wide"></div>
             </div>
         )
     },
@@ -30,12 +32,14 @@ const layoutOptions: LayoutOption[] = [
         name: 'Vertical Triplet',
         description: 'Two images on left, one large image on right',
         preview: (
-            <div className="layout-preview a4 vsplit">
-                <div className="preview-column">
-                    <div className="preview-dropzone"></div>
-                    <div className="preview-dropzone"></div>
+            <div className="layout-preview a4">
+                <div className="row">
+                    <div className="column">
+                        <div className="layout-preview-dropzone"></div>
+                        <div className="layout-preview-dropzone"></div>
+                    </div>
+                    <div className="layout-preview-dropzone large"></div>
                 </div>
-                <div className="preview-dropzone large"></div>
             </div>
         )
     },
@@ -44,9 +48,11 @@ const layoutOptions: LayoutOption[] = [
         name: 'Vertical Stack',
         description: 'Two images stacked vertically',
         preview: (
-            <div className="layout-preview a4 vertical">
-                <div className="preview-dropzone"></div>
-                <div className="preview-dropzone"></div>
+            <div className="layout-preview a4">
+                <div className="column">
+                    <div className="layout-preview-dropzone"></div>
+                    <div className="layout-preview-dropzone"></div>
+                </div>
             </div>
         )
     },
@@ -55,9 +61,11 @@ const layoutOptions: LayoutOption[] = [
         name: 'Horizontal Stack',
         description: 'Two images side by side',
         preview: (
-            <div className="layout-preview a4 horizontal">
-                <div className="preview-dropzone"></div>
-                <div className="preview-dropzone"></div>
+            <div className="layout-preview a4">
+                <div className="row">
+                    <div className="layout-preview-dropzone"></div>
+                    <div className="layout-preview-dropzone"></div>
+                </div>
             </div>
         )
     },
@@ -67,7 +75,7 @@ const layoutOptions: LayoutOption[] = [
         description: 'One large image taking the full page',
         preview: (
             <div className="layout-preview a4">
-                <div className="preview-dropzone full"></div>
+                <div className="layout-preview-dropzone full"></div>
             </div>
         )
     }

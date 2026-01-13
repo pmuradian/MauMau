@@ -3,23 +3,20 @@
     background-color: white;
     display: flex;
     flex-direction: row;
-    gap: 24px;
-    padding: 24px;
 }
 
 .photobook-sidebar {
     display: flex;
     flex-direction: column;
-    min-width: 200px;
-    max-width: 250px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
-    padding: 20px;
+    padding: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 1px solid #dee2e6;
     position: sticky;
-    top: 24px;
-    height: calc(100vh - 48px);
+    height: 100vh;
+    width: 250px;
+    flex-shrink: 0;
+    overflow: hidden; /* Constrain children for proper scrolling */
 }
 
 .photobook-sidebar-header {
@@ -88,55 +85,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
-}
-
-.mini-layout {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 2px;
-}
-
-.mini-layout.vsplit {
-    flex-direction: row;
-}
-
-.mini-layout.vsplit .mini-column {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-}
-
-.mini-layout.vsplit .mini-dropzone.large {
-    flex: 1;
-    margin-left: 2px;
-}
-
-.mini-layout .mini-row {
-    display: flex;
-    flex-direction: row;
-    gap: 2px;
-    flex: 1;
-}
-
-.mini-layout .mini-dropzone {
-    background: #f8f9fa;
-    border: 1px dashed #dee2e6;
-    border-radius: 2px;
-    flex: 1;
-}
-
-
-
-.mini-layout.vertical {
-    flex-direction: column;
-}
-
-.mini-layout.horizontal {
-    flex-direction: row;
+    padding: 2% 2% 2% 10%;
 }
 
 .photobook-sidebar-actions {

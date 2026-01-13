@@ -1,29 +1,44 @@
 /* Unified A4 page style */
 .a4-page {
-  aspect-ratio: 0.7071; /* A4 portrait ratio */
+  aspect-ratio: 0.7071; /* A4 portrait ratio (1/√2) */
   background-color: white;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
   overflow: hidden;
+  width: 100%; /* Let aspect-ratio determine height */
 }
 
 /* Main page variant that fills 80% of viewport height */
 .a4-page.main-page {
   height: 80vh;
-  width: auto; /* Let width be calculated from aspect ratio */
+  width: auto; /* Let aspect-ratio determine width from height */
   margin: 0 auto;
   flex-shrink: 0;
 }
 
-.a4-page .paper-content {
+/* Preview thumbnails in sidebar */
+.a4-page-preview-content {
   width: 100%;
-  height: 100%;
-  padding: 16px;
+  aspect-ratio: 0.7071;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  flex-shrink: 0; /* Prevent squashing - enable scroll instead */
 }
 
-
+.paper-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 .row {
   display: flex;
@@ -37,6 +52,5 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 10px;
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { PrimaryButton, SecondaryButton } from "../UserInterface/UserInterfaceComponents";
+import { PrimaryButton, SecondaryButton } from "../UserInterface/Buttons";
 import "./auth.css";
 
 export default function Login() {

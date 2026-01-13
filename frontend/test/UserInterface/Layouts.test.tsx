@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HorizontalTripplet } from '../../app/UserInterface/Layouts';
+import { HorizontalTriplet } from '../../app/UserInterface/Layouts';
 
-describe('HorizontalTripplet Layout', () => {
+describe('HorizontalTriplet Layout', () => {
   const mockOnImageDropped = vi.fn();
   const mockOnImageRemoved = vi.fn();
 
@@ -12,7 +12,7 @@ describe('HorizontalTripplet Layout', () => {
 
   it('renders three dropzones in correct layout', () => {
     render(
-      <HorizontalTripplet 
+      <HorizontalTriplet 
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -33,7 +33,7 @@ describe('HorizontalTripplet Layout', () => {
 
   it('applies correct aspect ratios to dropzones', () => {
     render(
-      <HorizontalTripplet 
+      <HorizontalTriplet 
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -53,7 +53,7 @@ describe('HorizontalTripplet Layout', () => {
 
   it('calls onImageDropped with correct dropzone indices', () => {
     render(
-      <HorizontalTripplet 
+      <HorizontalTriplet 
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -66,7 +66,7 @@ describe('HorizontalTripplet Layout', () => {
 
   it('calls onImageRemoved with correct dropzone indices', () => {
     render(
-      <HorizontalTripplet 
+      <HorizontalTriplet 
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -78,7 +78,7 @@ describe('HorizontalTripplet Layout', () => {
 
   it('applies correct CSS classes for layout', () => {
     render(
-      <HorizontalTripplet 
+      <HorizontalTriplet 
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
