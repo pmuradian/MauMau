@@ -167,3 +167,29 @@ The photobook component (app/photobook/photobook.tsx) maintains state and syncs 
 - Backend syncs happen via NetworkService functions
 - Use `viewPhotobook(id)` to fetch latest state from server
 - Image URLs from backend are used directly in `<img src={url} />` tags
+
+## Roadmap
+
+### Phase 1: Frontend UI
+- Main page component refinements
+- Add/remove page functionality
+- Page reordering (drag & drop)
+
+### Phase 2: Backend Persistence
+- Save/retrieve photobook data
+- Image file storage (local initially)
+- MongoDB for photobook metadata
+
+### Phase 3: Authentication & Accounts
+- Fix authentication flow
+- User account management
+
+## Future Architecture
+
+### Image Storage
+- **AWS S3** for production image storage (scalable, CDN-friendly)
+- Local file storage used during development, interface designed to swap in S3 later
+
+### Content Moderation
+- **AWS Rekognition** for image recognition to filter adult/inappropriate content
+- Validation hook runs before images are saved to storage
