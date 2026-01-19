@@ -1,12 +1,11 @@
 import React from "react";
 import { A4Portrait } from "UserInterface/Pages";
 import {
-  HorizontalTriplet,
-  VerticalTriplet,
-  VerticalTuple,
-  HorizontalTuple,
-  SinglePage,
-} from "UserInterface/Layouts";
+  PortraitHorizontalTriplet as HorizontalTriplet,
+  PortraitVerticalTriplet as VerticalTriplet,
+  PortraitVerticalTuple as VerticalTuple,
+  PortraitSinglePage as SinglePage,
+} from "UserInterface/PageLayouts/Portrait";
 import { File } from "UserInterface/Dropzone";
 import { uploadImage, removeImage } from "networking/NetworkService";
 import { type LayoutType } from "UserInterface/LayoutSelector";
@@ -80,14 +79,6 @@ export default function PhotobookPage({
       case "vertical-arrangement":
         return (
           <VerticalTuple
-            onImageDropped={handleDrop}
-            onImageRemoved={handleRemove}
-            initialImages={images}
-          />
-        );
-      case "horizontal-arrangement":
-        return (
-          <HorizontalTuple
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}

@@ -15,6 +15,7 @@
 /* Main page variant that fills 80% of viewport height */
 .a4-page.main-page {
   height: 80vh;
+  min-height: 450px;
   width: auto; /* Let aspect-ratio determine width from height */
   margin: 0 auto;
   flex-shrink: 0;
@@ -38,6 +39,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
+  padding-left: 15%;
+  padding-right: 5%;
+  box-sizing: border-box;
 }
 
 .row {

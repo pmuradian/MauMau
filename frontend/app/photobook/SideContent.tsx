@@ -1,8 +1,13 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { PrimaryButton } from "../UserInterface/Buttons";
 import { type LayoutType } from "UserInterface/LayoutSelector";
-import { HorizontalTriplet, HorizontalTuple, SinglePage, VerticalTriplet, VerticalTuple } from "UserInterface/Layouts";
-import { PreviewHorizontalTriplet, PreviewVerticalTuple, PreviewSinglePage, PreviewHorizontalTuple } from "UserInterface/PreviewLayouts";
+import { 
+    PortraitPreviewFullPage, 
+    PortraitPreviewHorizontalTriplet, 
+    PortraitPreviewSinglePage, 
+    PortraitPreviewVerticalTuple, 
+    PortraitPreviewVerticalTriplet
+ } from "UserInterface/PageLayouts/Portrait";
 
 interface SideContentProps {
     selectedPage: number;
@@ -63,10 +68,11 @@ const styles: { [key: string]: CSSProperties } = {
 
 const renderMiniPreview = (layout: LayoutType) => {
     const layouts = {
-        'horizontal-triplet': <PreviewHorizontalTriplet />,
-        'vertical-arrangement': <PreviewVerticalTuple />,
-        'horizontal-arrangement': <PreviewHorizontalTuple />,
-        'single-image': <PreviewSinglePage />
+        'horizontal-triplet': <PortraitPreviewHorizontalTriplet />,
+        'vertical-triplet': <PortraitPreviewVerticalTriplet />,
+        'vertical-arrangement': <PortraitPreviewVerticalTuple />,
+        'full-page': <PortraitPreviewFullPage />,
+        'single-image': <PortraitPreviewSinglePage />
     };
 
     return layouts[layout];
