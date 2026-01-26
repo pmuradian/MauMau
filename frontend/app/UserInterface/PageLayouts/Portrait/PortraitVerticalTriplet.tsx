@@ -45,19 +45,19 @@ export function PortraitPreviewVerticalTriplet({
     initialImages = {}
 }: PreviewLayoutProps) {
     return (
-        <div className='row' style={{ width: '100%', display: 'flex', flex: '1', gap: '8px' }}>
+        <div className='row' style={{paddingLeft: '10%', paddingRight: '5%', width: '100%', display: 'flex', flex: '1', gap: '8px' }}>
             <div className='column' style={{ width: '40%', display: 'flex', flexShrink: 0 }}>
                 <PreviewDropzone
-                    aspectRatio="0.8"
+                    aspectRatio="0.9"
                     initialImage={initialImages[0]}
                 />
                 <PreviewDropzone
-                    aspectRatio="0.8"
+                    aspectRatio="0.9"
                     initialImage={initialImages[1]}
                 />
             </div>
             <PreviewDropzone
-                aspectRatio='0.562'
+                aspectRatio='0.589'
                 initialImage={initialImages[2]}
             />
         </div>

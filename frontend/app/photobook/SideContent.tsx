@@ -15,14 +15,7 @@ interface SideContentProps {
     onPageSelect: (page: number) => void;
     onAddPage: () => void;
     pageLayouts: { [pageNumber: number]: LayoutType };
-    title?: string;
-    description?: string;
-    isEditingTitle?: boolean;
-    editedTitle?: string;
-    onEditedTitleChange?: (value: string) => void;
-    onSaveTitle?: () => void;
-    onBeginEdit?: () => void;
-    onCancelEdit?: () => void;
+    pageImages: { [pageNumber: number]: { [dropZoneIndex: number]: string } };
 }
 
 const styles: { [key: string]: CSSProperties } = {
@@ -58,6 +51,13 @@ const styles: { [key: string]: CSSProperties } = {
         alignItems: "center",
         overflow: "hidden",
         flexShrink: 0,
+        cursor: "pointer",
+        border: "2px solid transparent",
+        borderRadius: 4,
+    },
+    pagePreviewSelected: {
+        borderColor: "#007acc",
+        boxShadow: "0 2px 8px rgba(0, 122, 204, 0.3)",
     },
     sidebarActions: {
         paddingTop: 16,
@@ -66,13 +66,13 @@ const styles: { [key: string]: CSSProperties } = {
     },
 };
 
-const renderMiniPreview = (layout: LayoutType) => {
+const renderMiniPreview = (layout: LayoutType, images: { [dropZoneIndex: number]: string } = {}) => {
     const layouts = {
-        'horizontal-triplet': <PortraitPreviewHorizontalTriplet />,
-        'vertical-triplet': <PortraitPreviewVerticalTriplet />,
-        'vertical-tuple': <PortraitPreviewVerticalTuple />,
-        'full-page': <PortraitPreviewFullPage />,
-        'single-page': <PortraitPreviewSinglePage />
+        'horizontal-triplet': <PortraitPreviewHorizontalTriplet initialImages={images} />,
+        'vertical-triplet': <PortraitPreviewVerticalTriplet initialImages={images} />,
+        'vertical-tuple': <PortraitPreviewVerticalTuple initialImages={images} />,
+        'full-page': <PortraitPreviewFullPage initialImages={images} />,
+        'single-page': <PortraitPreviewSinglePage initialImages={images} />
     };
 
     return layouts[layout];
@@ -84,6 +84,7 @@ export default function SideContent({
     onPageSelect,
     onAddPage,
     pageLayouts,
+    pageImages,
 }: SideContentProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedPageRef = useRef<HTMLDivElement>(null);
@@ -106,9 +107,15 @@ export default function SideContent({
                 {Array.from({ length: totalPages }, (_, index) => {
                     const pageNumber = index + 1;
                     const layout = pageLayouts[pageNumber];
+                    const isSelected = pageNumber === selectedPage;
                     return (
-                        <div key={pageNumber} style={styles.pagePreview}>
-                            {renderMiniPreview(layout)}
+                        <div
+                            key={pageNumber}
+                            ref={isSelected ? selectedPageRef : null}
+                            style={{ ...styles.pagePreview, ...(isSelected ? styles.pagePreviewSelected : {}) }}
+                            onClick={() => onPageSelect(pageNumber)}
+                        >
+                            {renderMiniPreview(layout, pageImages[pageNumber])}
                         </div>
                     );
                 })}

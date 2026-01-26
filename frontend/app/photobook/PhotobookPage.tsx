@@ -49,13 +49,10 @@ export default function PhotobookPage({
   };
 
   const handleRemove = (dropZoneIndex: number) => {
-    removeImage(photobookKey, dropZoneIndex)
-      .then(() => {
-        onImageRemovedLocal(dropZoneIndex);
-      })
-      .catch((error) => {
-        console.error("Error removing image:", error);
-      });
+    onImageRemovedLocal(dropZoneIndex);
+    removeImage(photobookKey, dropZoneIndex).catch((error) => {
+      console.error("Error removing image from server:", error);
+    });
   };
 
   const renderLayout = () => {

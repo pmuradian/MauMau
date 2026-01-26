@@ -16,7 +16,7 @@ export default function Photobook() {
   const [selectedPage, setSelectedPage] = useState(1);
   const [pageData, setPageData] = useState<{ [pageNumber: number]: PageData }>({});
   const [pageLayouts, setPageLayouts] = useState<{ [pageNumber: number]: LayoutType }>({});
-  const [totalPages, setTotalPages] = useState(3);
+  const [totalPages, setTotalPages] = useState(1);
   const [showLayoutSelector, setShowLayoutSelector] = useState(false);
   const photobookKey = searchParams.get("key") || "";
 
@@ -103,20 +103,9 @@ export default function Photobook() {
         onPageSelect={setSelectedPage}
         onAddPage={() => setShowLayoutSelector(true)}
         pageLayouts={pageLayouts}
-        title={data.title}
-        description={data.description}
-        isEditingTitle={isEditingTitle}
-        editedTitle={editedTitle}
-        onEditedTitleChange={setEditedTitle}
-        onSaveTitle={handleSaveTitle}
-        onBeginEdit={() => {
-          setIsEditingTitle(true);
-          setEditedTitle(data.title);
-        }}
-        onCancelEdit={() => {
-          setIsEditingTitle(false);
-          setEditedTitle(data.title);
-        }}
+        pageImages={Object.fromEntries(
+          Object.entries(pageData).map(([k, v]) => [k, v?.images || {}])
+        )}
       />
 
       <div className="photobook-main-content">

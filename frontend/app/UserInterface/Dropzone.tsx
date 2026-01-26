@@ -37,20 +37,13 @@ export function PreviewDropzone( { aspectRatio = '1', initialImage }: {
     }, [initialImage]);
 
         return (
-        <div style={{ aspectRatio: aspectRatio, width: '100%', backgroundColor: 'red'}}>
-            {/* {file ? (
-                <div className="dropzone-image-container">
-                    <img
-                        src={file.preview}
-                        className="dropzone-image"
-                        onError={(e) => {
-                            console.error("Error loading image preview:", e);
-                        }}
-                    />
-                </div>
-            ) : ( */}
-                <div style={{ width: '100%', height: '100%' }}></div>
-            {/* )} */}
+        <div style={{ aspectRatio: aspectRatio, width: '100%', backgroundColor: '#c0392b', overflow: 'hidden' }}>
+            {file ? (
+                <img
+                    src={file.preview}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+            ) : null}
         </div>
     )
 }
