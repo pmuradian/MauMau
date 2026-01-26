@@ -25,7 +25,7 @@ export function PortraitPreviewSinglePage({
     initialImages = {}
 }: PreviewLayoutProps) {
     return (
-        <div style={{ paddingLeft: '10%', paddingRight: '5%', width: '100%', height: '100%', display: 'flex', flex: '1' }}>
+        <div style={{ paddingLeft: '10%', paddingRight: '5%', width: '100%', display: 'flex', flex: '1' }}>
             <PreviewDropzone
                 aspectRatio="0.7"
                 initialImage={initialImages[0]}

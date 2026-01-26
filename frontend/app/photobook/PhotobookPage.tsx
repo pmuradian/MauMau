@@ -5,6 +5,7 @@ import {
   PortraitVerticalTriplet as VerticalTriplet,
   PortraitVerticalTuple as VerticalTuple,
   PortraitSinglePage as SinglePage,
+  PortraitFullPage as FullPage,
 } from "UserInterface/PageLayouts/Portrait";
 import { File } from "UserInterface/Dropzone";
 import { uploadImage, removeImage } from "networking/NetworkService";
@@ -76,7 +77,7 @@ export default function PhotobookPage({
             initialImages={images}
           />
         );
-      case "vertical-arrangement":
+      case "vertical-tuple":
         return (
           <VerticalTuple
             onImageDropped={handleDrop}
@@ -84,9 +85,17 @@ export default function PhotobookPage({
             initialImages={images}
           />
         );
-      case "single-image":
+      case "single-page":
         return (
           <SinglePage
+            onImageDropped={handleDrop}
+            onImageRemoved={handleRemove}
+            initialImages={images}
+          />
+        );
+      case "full-page":
+        return (
+          <FullPage
             onImageDropped={handleDrop}
             onImageRemoved={handleRemove}
             initialImages={images}

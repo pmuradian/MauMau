@@ -70,9 +70,9 @@ const renderMiniPreview = (layout: LayoutType) => {
     const layouts = {
         'horizontal-triplet': <PortraitPreviewHorizontalTriplet />,
         'vertical-triplet': <PortraitPreviewVerticalTriplet />,
-        'vertical-arrangement': <PortraitPreviewVerticalTuple />,
+        'vertical-tuple': <PortraitPreviewVerticalTuple />,
         'full-page': <PortraitPreviewFullPage />,
-        'single-image': <PortraitPreviewSinglePage />
+        'single-page': <PortraitPreviewSinglePage />
     };
 
     return layouts[layout];
