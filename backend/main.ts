@@ -150,6 +150,117 @@ app.put('/update-title', authenticate, async (req: AuthRequest, res: Response) =
     }
 });
 
+// List all photobooks for the authenticated user
+app.get('/photobooks', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobooks = await PhotobookService.listByUser(userId);
+        res.json(photobooks);
+    } catch (error) {
+        console.error('Error listing photobooks:', error);
+        res.status(500).json({ error: 'Failed to list photobooks' });
+    }
+});
+
+// Delete a photobook
+app.delete('/photobook', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobookId = req.query.key as string;
+
+        if (!photobookId) {
+            return res.status(400).json({ error: 'Missing photobook key' });
+        }
+
+        const success = await PhotobookService.delete(userId, photobookId);
+
+        if (!success) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+
+        console.log(`Photobook ${photobookId} deleted`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting photobook:', error);
+        res.status(500).json({ error: 'Failed to delete photobook' });
+    }
+});
+
+// Add a new page to a photobook
+app.post('/add-page', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobookId = req.query.key as string;
+        const { layout } = req.body;
+
+        if (!photobookId) {
+            return res.status(400).json({ error: 'Missing photobook key' });
+        }
+
+        const pageNumber = await PhotobookService.addPage(userId, photobookId, layout || 'horizontal-triplet');
+
+        if (pageNumber === null) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+
+        console.log(`Added page ${pageNumber} to photobook ${photobookId}`);
+        res.json({ success: true, pageNumber });
+    } catch (error) {
+        console.error('Error adding page:', error);
+        res.status(500).json({ error: 'Failed to add page' });
+    }
+});
+
+// Update page order
+app.put('/page-order', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobookId = req.query.key as string;
+        const { order } = req.body;
+
+        if (!photobookId || !order || !Array.isArray(order)) {
+            return res.status(400).json({ error: 'Missing required fields: key or order array' });
+        }
+
+        const success = await PhotobookService.updatePageOrder(userId, photobookId, order);
+
+        if (!success) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+
+        console.log(`Page order updated for photobook ${photobookId}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating page order:', error);
+        res.status(500).json({ error: 'Failed to update page order' });
+    }
+});
+
+// Update page layout
+app.put('/page-layout', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobookId = req.query.key as string;
+        const { pageNumber, layout } = req.body;
+
+        if (!photobookId || pageNumber === undefined || !layout) {
+            return res.status(400).json({ error: 'Missing required fields: key, pageNumber, or layout' });
+        }
+
+        const success = await PhotobookService.updatePageLayout(userId, photobookId, pageNumber, layout);
+
+        if (!success) {
+            return res.status(404).json({ error: 'Photobook or page not found' });
+        }
+
+        console.log(`Layout updated for page ${pageNumber} in photobook ${photobookId}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating page layout:', error);
+        res.status(500).json({ error: 'Failed to update page layout' });
+    }
+});
+
 app.get('/generate-pdf', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
