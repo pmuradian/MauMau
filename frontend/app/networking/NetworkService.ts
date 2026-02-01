@@ -1,127 +1,151 @@
-
 const MauMauURL = "http://localhost:3000";
-const MauMauCreate = MauMauURL + "/create";
-const MauMauView = MauMauURL + "/photobook";
-const MauMauUpload = MauMauURL + "/upload";
-const MauMauAddPage = MauMauURL + "/addPage";
 
-export function createPhotobook(
-    title: string,
-    pageFormat: string,
-    pageCount: number
-): Promise<any> {
-    return fetch(MauMauCreate, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            title: title,
-            pageFormat: pageFormat,
-            pageCount: pageCount,
-        }),
-    }).then((response) => 
-        response.json()
-    );
+// Get auth token from localStorage
+function getAuthToken(): string | null {
+    return localStorage.getItem('token');
 }
 
-export function viewPhotobook(
-    photobookId: string
-): Promise<any> {
-    console.log("Photobook ID:", photobookId);
-    return fetch(MauMauView + "?key=" + photobookId, {
+// Get headers with auth token
+function getAuthHeaders(): HeadersInit {
+    const token = getAuthToken();
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
+// Handle response with 401 redirect
+async function handleResponse<T>(response: Response, parseAs: 'json' | 'blob' = 'json'): Promise<T> {
+    if (response.status === 401) {
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Request failed:', response.status, errorText);
+        throw new Error(`Request failed: ${response.status} ${errorText}`);
+    }
+
+    if (parseAs === 'blob') {
+        return response.blob() as Promise<T>;
+    }
+    return response.json() as Promise<T>;
+}
+
+export function createPhotobook(title?: string): Promise<{ key: string }> {
+    return fetch(MauMauURL + "/create", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ title }),
+    }).then((response) => handleResponse(response));
+}
+
+export function viewPhotobook(photobookId: string): Promise<any> {
+    return fetch(MauMauURL + "/photobook?key=" + photobookId, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then((response) => 
-        response.json()
-    );
+        headers: getAuthHeaders(),
+    }).then((response) => handleResponse(response));
+}
+
+export function listPhotobooks(): Promise<any[]> {
+    return fetch(MauMauURL + "/photobooks", {
+        method: "GET",
+        headers: getAuthHeaders(),
+    }).then((response) => handleResponse(response));
+}
+
+export function deletePhotobook(photobookId: string): Promise<{ success: boolean }> {
+    return fetch(MauMauURL + "/photobook?key=" + photobookId, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    }).then((response) => handleResponse(response));
 }
 
 export function uploadImage(
     photobookId: string,
     image: string,
-    coords?: { x: number, y: number, width: number, height: number, dropZoneIndex?: number }
-): Promise<any> {
-    const body = {
-        img: image,
-        coords: coords ?? { x: 0, y: 0, width: 0, height: 0, dropZoneIndex: 0 }
-    };
-    const jsonBody = JSON.stringify(body);
-    return fetch(MauMauUpload + "?key=" + photobookId, {
+    dropZoneIndex: number,
+    pageNumber: number = 1,
+    layout: string = 'horizontal-triplet'
+): Promise<{ success: boolean; dropZoneIndex: number }> {
+    return fetch(MauMauURL + "/upload?key=" + photobookId, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: jsonBody,
-    }).then(async (response) => {
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Upload failed:', response.status, errorText);
-            throw new Error(`Upload failed: ${response.status} ${errorText}`);
-        }
-        return response.json();
-    });
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+            img: image,
+            dropZoneIndex,
+            pageNumber,
+            layout,
+        }),
+    }).then((response) => handleResponse(response));
+}
+
+export function removeImage(
+    photobookId: string,
+    dropZoneIndex: number,
+    pageNumber: number = 1
+): Promise<{ success: boolean }> {
+    const url = `${MauMauURL}/remove-image?key=${photobookId}&dropZoneIndex=${dropZoneIndex}&pageNumber=${pageNumber}`;
+    return fetch(url, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+    }).then((response) => handleResponse(response));
 }
 
 export function addPage(
     photobookId: string,
-    pageData: any
-): Promise<any> {
-    return fetch(MauMauAddPage + "?key=" + photobookId, {
+    layout: string = 'horizontal-triplet'
+): Promise<{ success: boolean; pageNumber: number }> {
+    return fetch(MauMauURL + "/add-page?key=" + photobookId, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(pageData),
-    }).then((response) => 
-        response.json()
-    );
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ layout }),
+    }).then((response) => handleResponse(response));
 }
 
-export function removeImage(photobookId: string, dropZoneIndex: number): Promise<any> {
-    return fetch(MauMauURL + "/remove-image?key=" + photobookId + "&dropZoneIndex=" + dropZoneIndex, {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(async (response) => {
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Image removal failed:', response.status, errorText);
-            throw new Error(`Image removal failed: ${response.status} ${errorText}`);
-        }
-        return response.json();
-    });
+export function updatePageOrder(
+    photobookId: string,
+    order: number[]
+): Promise<{ success: boolean }> {
+    return fetch(MauMauURL + "/page-order?key=" + photobookId, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ order }),
+    }).then((response) => handleResponse(response));
 }
 
-export function updatePhotobookTitle(photobookId: string, title: string): Promise<any> {
+export function updatePageLayout(
+    photobookId: string,
+    pageNumber: number,
+    layout: string
+): Promise<{ success: boolean }> {
+    return fetch(MauMauURL + "/page-layout?key=" + photobookId, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ pageNumber, layout }),
+    }).then((response) => handleResponse(response));
+}
+
+export function updatePhotobookTitle(
+    photobookId: string,
+    title: string
+): Promise<{ success: boolean; title: string }> {
     return fetch(MauMauURL + "/update-title?key=" + photobookId, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ title }),
-    }).then(async (response) => {
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Title update failed:', response.status, errorText);
-            throw new Error(`Title update failed: ${response.status} ${errorText}`);
-        }
-        return response.json();
-    });
+    }).then((response) => handleResponse(response));
 }
 
 export function generatePDF(photobookId: string): Promise<Blob> {
     return fetch(MauMauURL + "/generate-pdf?key=" + photobookId, {
         method: "GET",
-    }).then(async (response) => {
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('PDF generation failed:', response.status, errorText);
-            throw new Error(`PDF generation failed: ${response.status} ${errorText}`);
-        }
-        return response.blob();
-    });
+        headers: getAuthHeaders(),
+    }).then((response) => handleResponse<Blob>(response, 'blob'));
 }
