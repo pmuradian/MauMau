@@ -1,5 +1,5 @@
 import PDFDocument from 'pdfkit';
-import { PhotoBook, ImagePlacement } from './storage.ts';
+import { IPhotobook, IImagePlacement, IPage } from './models/Photobook';
 
 export class PDFService {
     // A4 dimensions in points (72 points per inch)
@@ -16,11 +16,11 @@ export class PDFService {
         return px * (72 / 96);
     }
     
-    static async generatePhotobookPDF(photoBook: PhotoBook): Promise<Buffer> {
+    static async generatePhotobookPDF(photobook: IPhotobook): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             try {
-                console.log('Generating PDF for photobook:', photoBook.title);
-                console.log('Number of pages:', photoBook.pages.length);
+                console.log('Generating PDF for photobook:', photobook.title);
+                console.log('Number of pages:', photobook.pages.length);
                 
                 const doc = new PDFDocument({
                     size: 'A4',
@@ -33,17 +33,17 @@ export class PDFService {
                 doc.on('error', reject);
                 
                 // If no pages, create a blank page
-                if (photoBook.pages.length === 0) {
+                if (photobook.pages.length === 0) {
                     console.log('No pages found, creating blank page');
                     doc.text('No images uploaded yet', 50, 50);
                 } else {
                     // Process each page
-                    photoBook.pages.forEach((page, pageIndex) => {
+                    photobook.pages.forEach((page: IPage, pageIndex: number) => {
                         console.log(`Processing page ${pageIndex}, images:`, page.images.length);
                         if (pageIndex > 0) {
                             doc.addPage();
                         }
-                        
+
                         this.renderPage(doc, page);
                     });
                 }
@@ -56,7 +56,7 @@ export class PDFService {
         });
     }
     
-    private static renderPage(doc: PDFKit.PDFDocument, page: any) {
+    private static renderPage(doc: PDFKit.PDFDocument, page: IPage) {
         // Account for all frontend padding layers:
         // 1. A4Portrait has p-4 (16px padding on all sides)
         // 2. HorizontalTriplet has paddingTop: '12%'
@@ -129,7 +129,7 @@ export class PDFService {
         
         // Place images in their respective dropzones
         console.log(`Rendering page with ${page.images.length} images`);
-        page.images.forEach((imagePlacement: ImagePlacement, index: number) => {
+        page.images.forEach((imagePlacement: IImagePlacement, index: number) => {
             console.log(`Placing image ${index} in dropzone ${imagePlacement.dropZoneIndex}`);
             const dropzone = dropzones[imagePlacement.dropZoneIndex];
             if (dropzone) {
@@ -139,43 +139,25 @@ export class PDFService {
             }
         });
     }
-    
+
     private static placeImageInDropzone(
-        doc: PDFKit.PDFDocument, 
-        imagePlacement: ImagePlacement, 
+        doc: PDFKit.PDFDocument,
+        imagePlacement: IImagePlacement,
         dropzone: { x: number, y: number, width: number, height: number }
     ) {
         try {
             // Convert base64 to buffer
             const base64Data = imagePlacement.imageData.replace(/^data:image\/[a-z]+;base64,/, '');
             const imageBuffer = Buffer.from(base64Data, 'base64');
-            
-            // Calculate image dimensions to fit within dropzone while maintaining aspect ratio
-            const imageAspectRatio = imagePlacement.width / imagePlacement.height;
-            const dropzoneAspectRatio = dropzone.width / dropzone.height;
-            
-            let imageWidth, imageHeight, imageX, imageY;
-            
-            if (imageAspectRatio > dropzoneAspectRatio) {
-                // Image is wider than dropzone - fit to width
-                imageWidth = dropzone.width;
-                imageHeight = dropzone.width / imageAspectRatio;
-                imageX = dropzone.x;
-                imageY = dropzone.y + (dropzone.height - imageHeight) / 2;
-            } else {
-                // Image is taller than dropzone - fit to height
-                imageHeight = dropzone.height;
-                imageWidth = dropzone.height * imageAspectRatio;
-                imageX = dropzone.x + (dropzone.width - imageWidth) / 2;
-                imageY = dropzone.y;
-            }
-            
-            // Place the image
-            doc.image(imageBuffer, imageX, imageY, {
-                width: imageWidth,
-                height: imageHeight
+
+            // Fit image to fill the dropzone (cover mode)
+            // PDFKit will handle the image placement
+            doc.image(imageBuffer, dropzone.x, dropzone.y, {
+                fit: [dropzone.width, dropzone.height],
+                align: 'center',
+                valign: 'center'
             });
-            
+
         } catch (error) {
             console.error('Error placing image in PDF:', error);
         }

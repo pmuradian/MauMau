@@ -1,15 +1,15 @@
-import { DemoStorage, storage, PhotoBook, PageFormat } from "./storage";
-import { PDFService } from "./pdf-service";
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import express, { Response } from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/database';
 import { authenticate, AuthRequest } from './middleware/auth';
+import { PhotobookService } from './services/PhotobookService';
+import { LayoutType } from './models/Photobook';
+import { PDFService } from './pdf-service';
 
 dotenv.config();
 
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
 app.use((_, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
@@ -23,148 +23,102 @@ app.options('*', (_, res) => {
   res.sendStatus(200);
 });
 
-app.use(express.json({ limit: '500mb' }))
-app.use(express.urlencoded({ limit: '500mb', extended: true }))
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-type UploadInput = {
-  file: File;
-  fileType: string;
-  fileSize: number;
-};
-
-type PageInput = {
-  page: number;
-  arrangement: PageArrangementInput;
-};
-
-type PhotoBookInput = {
-    title: string;
-    pageFormat: PageFormatInput;
-    pageCount: number;
-}
-
-enum PageArrangementInput {
-    GRID,
-    COLLAGE,
-    SINGLE,
-    DOUBLE,
-    TRIPLE,
-    QUAD,
-    PANORAMA,
-    FULL_PAGE,
-    SPLIT, 
-};
-
-enum PageFormatInput {
-  A4 = "A4",
-  A5 = "A5",
-  A6 = "A6",
-};
-
-function createPhotoBook(input: PhotoBookInput): string {
-    const newBook = new PhotoBook(
-        input.title,
-        PageFormat.A5,
-        input.pageCount
-    )
-
-  return storage.createPhotoBook(
-    newBook
-  );
-};
-
-function addPage(input: PageInput): void {
-  console.log("Adding page number:", input.page);
-};
-
-function upload(uploadInput: UploadInput): void {
-  console.log("Uploading file:", uploadInput.file);
-  console.log("File type:", uploadInput.fileType);
-  console.log("File size:", uploadInput.fileSize);
-}
-
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+// Health check endpoint (no auth required)
+app.get('/', (_, res) => {
+    res.send('Photobook API is running');
 });
 
-app.post('/upload', authenticate, (req: AuthRequest, res) => {
+app.post('/upload', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        console.log("Upload endpoint hit");
+        const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
-        const { img, coords } = req.body;
-        
-        console.log("Photobook ID:", photobookId);
-        console.log("Has image data:", !!img);
-        console.log("Coords:", coords);
-        
-        if (!photobookId || !img || !coords) {
-            console.log("Missing required fields");
-            return res.status(400).json({ error: 'Missing required fields: key, img, or coords' });
+        const { img, dropZoneIndex, pageNumber, layout } = req.body;
+
+        if (!photobookId || !img || dropZoneIndex === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: key, img, or dropZoneIndex' });
         }
-        
-        // Extract coordinates and dimensions
-        const { x, y, width, height, dropZoneIndex, pageNumber } = coords;
-        
-        // Use the dropzone index from the frontend, fallback to coordinate-based detection
-        let finalDropZoneIndex = dropZoneIndex ?? 0;
-        if (dropZoneIndex === undefined) {
-            // Fallback: determine dropzone index based on coordinates
-            if (x > 300) finalDropZoneIndex = 1; // Right side of top row
-            if (y > 400) finalDropZoneIndex = 2; // Bottom dropzone
-        }
-        
+
         const finalPageNumber = pageNumber ?? 1;
-        
-        // Store the image with its placement data
-        storage.addImageToPhotoBook(photobookId, img, x, y, width, height, finalDropZoneIndex, finalPageNumber);
-        
-        console.log(`Image uploaded to photobook ${photobookId} at dropzone ${finalDropZoneIndex}`);
-        res.json({ success: true, dropZoneIndex: finalDropZoneIndex });
+        const finalLayout: LayoutType = layout || 'horizontal-triplet';
+
+        const success = await PhotobookService.addImage(
+            userId,
+            photobookId,
+            img,
+            dropZoneIndex,
+            finalPageNumber,
+            finalLayout
+        );
+
+        if (!success) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+
+        console.log(`Image uploaded to photobook ${photobookId} at dropzone ${dropZoneIndex}`);
+        res.json({ success: true, dropZoneIndex });
     } catch (error) {
         console.error('Error in upload endpoint:', error);
         res.status(500).json({ error: 'Internal server error during upload' });
     }
 });
 
-app.post('/create', authenticate, (req: AuthRequest, res) => {
-    const input: PhotoBookInput = {
-        title: "My Photo Book",
-        pageFormat: PageFormatInput.A4,
-        pageCount: 10
-    };
-    let newKey = createPhotoBook(input);
-    console.log("Created new photo book with key:", newKey);
-    res.send(JSON.stringify({
-      key: newKey,
-    }));
-});
-
-app.get('/photobook', authenticate, (req: AuthRequest, res) => {
-    const photobookId = req.query.key;
-    res.send(
-      JSON.stringify(
-        storage.getPhotoBook(photobookId)
-      )
-    )
-});
-
-app.get('/add_page', authenticate, (req: AuthRequest, res) => {
-    res.send('Hello World! upload')
-});
-
-app.delete('/remove-image', authenticate, (req: AuthRequest, res) => {
+app.post('/create', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        console.log("Remove image endpoint hit");
+        const userId = req.user!._id.toString();
+        const { title } = req.body;
+
+        const photobookId = await PhotobookService.create(userId, title);
+        console.log("Created new photobook with id:", photobookId);
+
+        res.json({ key: photobookId });
+    } catch (error) {
+        console.error('Error creating photobook:', error);
+        res.status(500).json({ error: 'Failed to create photobook' });
+    }
+});
+
+app.get('/photobook', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
+        const photobookId = req.query.key as string;
+
+        if (!photobookId) {
+            return res.status(400).json({ error: 'Missing photobook key' });
+        }
+
+        const photobook = await PhotobookService.get(userId, photobookId);
+        if (!photobook) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+
+        res.json(photobook);
+    } catch (error) {
+        console.error('Error fetching photobook:', error);
+        res.status(500).json({ error: 'Failed to fetch photobook' });
+    }
+});
+
+app.delete('/remove-image', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
         const dropZoneIndex = parseInt(req.query.dropZoneIndex as string);
-        
+        const pageNumber = parseInt(req.query.pageNumber as string) || 1;
+
         if (!photobookId || isNaN(dropZoneIndex)) {
             return res.status(400).json({ error: 'Missing required fields: key or dropZoneIndex' });
         }
-        
-        storage.removeImageFromPhotoBook(photobookId, dropZoneIndex);
-        
-        console.log(`Image removed from photobook ${photobookId}, dropzone ${dropZoneIndex}`);
+
+        const success = await PhotobookService.removeImage(userId, photobookId, pageNumber, dropZoneIndex);
+
+        if (!success) {
+            return res.status(404).json({ error: 'Image not found' });
+        }
+
+        console.log(`Image removed from photobook ${photobookId}, page ${pageNumber}, dropzone ${dropZoneIndex}`);
         res.json({ success: true });
     } catch (error) {
         console.error('Error in remove image endpoint:', error);
@@ -172,18 +126,18 @@ app.delete('/remove-image', authenticate, (req: AuthRequest, res) => {
     }
 });
 
-app.put('/update-title', authenticate, (req: AuthRequest, res) => {
+app.put('/update-title', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        console.log("Update title endpoint hit");
+        const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
         const { title } = req.body;
-        
+
         if (!photobookId || !title) {
             return res.status(400).json({ error: 'Missing required fields: key or title' });
         }
-        
-        const success = storage.updatePhotobookTitle(photobookId, title);
-        
+
+        const success = await PhotobookService.updateTitle(userId, photobookId, title);
+
         if (success) {
             console.log(`Title updated for photobook ${photobookId}: ${title}`);
             res.json({ success: true, title });
@@ -196,26 +150,27 @@ app.put('/update-title', authenticate, (req: AuthRequest, res) => {
     }
 });
 
-app.get('/generate-pdf', authenticate, async (req: AuthRequest, res) => {
+app.get('/generate-pdf', authenticate, async (req: AuthRequest, res: Response) => {
     try {
+        const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
-        
+
         if (!photobookId) {
             return res.status(400).json({ error: 'Missing photobook key' });
         }
-        
-        const photobook = storage.getPhotoBook(photobookId);
+
+        const photobook = await PhotobookService.get(userId, photobookId);
         if (!photobook) {
             return res.status(404).json({ error: 'Photobook not found' });
         }
-        
+
         console.log(`Generating PDF for photobook ${photobookId}`);
         const pdfBuffer = await PDFService.generatePhotobookPDF(photobook);
-        
+
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${photobook.title || 'photobook'}.pdf"`);
         res.send(pdfBuffer);
-        
+
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).json({ error: 'Failed to generate PDF' });
