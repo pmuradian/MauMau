@@ -260,6 +260,7 @@ The photobook component (app/photobook/photobook.tsx) maintains state and syncs 
 
 ### Phase 3: Authentication & Accounts
 - [ ] Fix authentication flow
+- [ ] Refresh token mechanism (avoid session expiry during editing)
 - [ ] User dashboard with saved photobooks
 - [ ] Order history
 

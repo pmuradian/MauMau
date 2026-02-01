@@ -1,17 +1,27 @@
-import { DemoStorage, storage, PhotoBook, PageFormat } from "./storage.ts";
-import { PDFService } from "./pdf-service.ts";
-import express from 'express';
+import { DemoStorage, storage, PhotoBook, PageFormat } from "./storage";
+import { PDFService } from "./pdf-service";
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './config/database';
+import { authenticate, AuthRequest } from './middleware/auth';
+
+dotenv.config();
 
 const app = express()
 const port = 3000
 
 app.use((_, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
-})
+});
+
+// Handle preflight requests
+app.options('*', (_, res) => {
+  res.sendStatus(200);
+});
 
 app.use(express.json({ limit: '500mb' }))
 app.use(express.urlencoded({ limit: '500mb', extended: true }))
@@ -77,7 +87,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 });
 
-app.post('/upload', (req, res) => {
+app.post('/upload', authenticate, (req: AuthRequest, res) => {
     try {
         console.log("Upload endpoint hit");
         const photobookId = req.query.key as string;
@@ -116,7 +126,7 @@ app.post('/upload', (req, res) => {
     }
 });
 
-app.post('/create', (req, res) => {
+app.post('/create', authenticate, (req: AuthRequest, res) => {
     const input: PhotoBookInput = {
         title: "My Photo Book",
         pageFormat: PageFormatInput.A4,
@@ -129,7 +139,7 @@ app.post('/create', (req, res) => {
     }));
 });
 
-app.get('/photobook', (req, res) => {
+app.get('/photobook', authenticate, (req: AuthRequest, res) => {
     const photobookId = req.query.key;
     res.send(
       JSON.stringify(
@@ -138,11 +148,11 @@ app.get('/photobook', (req, res) => {
     )
 });
 
-app.get('/add_page', (req, res) => {
+app.get('/add_page', authenticate, (req: AuthRequest, res) => {
     res.send('Hello World! upload')
 });
 
-app.delete('/remove-image', (req, res) => {
+app.delete('/remove-image', authenticate, (req: AuthRequest, res) => {
     try {
         console.log("Remove image endpoint hit");
         const photobookId = req.query.key as string;
@@ -162,7 +172,7 @@ app.delete('/remove-image', (req, res) => {
     }
 });
 
-app.put('/update-title', (req, res) => {
+app.put('/update-title', authenticate, (req: AuthRequest, res) => {
     try {
         console.log("Update title endpoint hit");
         const photobookId = req.query.key as string;
@@ -186,7 +196,7 @@ app.put('/update-title', (req, res) => {
     }
 });
 
-app.get('/generate-pdf', async (req, res) => {
+app.get('/generate-pdf', authenticate, async (req: AuthRequest, res) => {
     try {
         const photobookId = req.query.key as string;
         
@@ -212,7 +222,13 @@ app.get('/generate-pdf', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+// Connect to MongoDB then start server
+connectDB().then(() => {
+    app.listen(port, () => {
+        console.log(`Photobook API server listening on port ${port}`)
+    })
+}).catch((error) => {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+});
 
