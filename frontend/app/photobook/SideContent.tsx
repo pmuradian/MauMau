@@ -1,19 +1,35 @@
 import { useEffect, useRef, type CSSProperties } from "react";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { PrimaryButton } from "../UserInterface/Buttons";
 import { type LayoutType } from "UserInterface/LayoutSelector";
-import { 
-    PortraitPreviewFullPage, 
-    PortraitPreviewHorizontalTriplet, 
-    PortraitPreviewSinglePage, 
-    PortraitPreviewVerticalTuple, 
+import {
+    PortraitPreviewFullPage,
+    PortraitPreviewHorizontalTriplet,
+    PortraitPreviewSinglePage,
+    PortraitPreviewVerticalTuple,
     PortraitPreviewVerticalTriplet
  } from "UserInterface/PageLayouts/Portrait";
+import SortablePageItem from "./SortablePageItem";
 
 interface SideContentProps {
     selectedPage: number;
-    totalPages: number;
+    pageOrder: number[];
     onPageSelect: (page: number) => void;
     onAddPage: () => void;
+    onReorderPages: (oldIndex: number, newIndex: number) => void;
     pageLayouts: { [pageNumber: number]: LayoutType };
     pageImages: { [pageNumber: number]: { [dropZoneIndex: number]: string } };
 }
@@ -41,24 +57,6 @@ const styles: { [key: string]: CSSProperties } = {
         paddingRight: 8,
         minHeight: 0,
     },
-    pagePreview: {
-        width: "100%",
-        aspectRatio: "0.7071",
-        backgroundColor: "white",
-        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        overflow: "hidden",
-        flexShrink: 0,
-        cursor: "pointer",
-        border: "2px solid transparent",
-        borderRadius: 4,
-    },
-    pagePreviewSelected: {
-        borderColor: "#007acc",
-        boxShadow: "0 2px 8px rgba(0, 122, 204, 0.3)",
-    },
     sidebarActions: {
         paddingTop: 16,
         borderTop: "2px solid #dee2e6",
@@ -80,46 +78,81 @@ const renderMiniPreview = (layout: LayoutType, images: { [dropZoneIndex: number]
 
 export default function SideContent({
     selectedPage,
-    totalPages,
+    pageOrder,
     onPageSelect,
     onAddPage,
+    onReorderPages,
     pageLayouts,
     pageImages,
 }: SideContentProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const selectedPageRef = useRef<HTMLDivElement>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = pageOrder.indexOf(Number(active.id));
+            const newIndex = pageOrder.indexOf(Number(over.id));
+            onReorderPages(oldIndex, newIndex);
+        }
+    };
 
     useEffect(() => {
-        if (!containerRef.current || !selectedPageRef.current) return;
+        if (!containerRef.current) return;
 
+        const selectedIndex = pageOrder.indexOf(selectedPage);
         const container = containerRef.current;
-        const selectedElement = selectedPageRef.current;
-        const scrollTop = selectedElement.offsetTop -
-            (container.clientHeight / 2) +
-            (selectedElement.clientHeight / 2);
+        const children = container.children;
 
-        container.scrollTo({ top: scrollTop, behavior: 'smooth' });
-    }, [selectedPage]);
+        if (selectedIndex >= 0 && children[selectedIndex]) {
+            const selectedElement = children[selectedIndex] as HTMLElement;
+            const scrollTop = selectedElement.offsetTop -
+                (container.clientHeight / 2) +
+                (selectedElement.clientHeight / 2);
+
+            container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+        }
+    }, [selectedPage, pageOrder]);
+
+    const sortableIds = pageOrder.map(String);
 
     return (
         <div style={styles.sidebar}>
-            <div style={styles.pagesContainer} ref={containerRef}>
-                {Array.from({ length: totalPages }, (_, index) => {
-                    const pageNumber = index + 1;
-                    const layout = pageLayouts[pageNumber];
-                    const isSelected = pageNumber === selectedPage;
-                    return (
-                        <div
-                            key={pageNumber}
-                            ref={isSelected ? selectedPageRef : null}
-                            style={{ ...styles.pagePreview, ...(isSelected ? styles.pagePreviewSelected : {}) }}
-                            onClick={() => onPageSelect(pageNumber)}
-                        >
-                            {renderMiniPreview(layout, pageImages[pageNumber])}
-                        </div>
-                    );
-                })}
-            </div>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+                    <div style={styles.pagesContainer} ref={containerRef}>
+                        {pageOrder.map((pageNumber) => {
+                            const layout = pageLayouts[pageNumber];
+                            const isSelected = pageNumber === selectedPage;
+                            return (
+                                <SortablePageItem
+                                    key={pageNumber}
+                                    id={String(pageNumber)}
+                                    isSelected={isSelected}
+                                    onClick={() => onPageSelect(pageNumber)}
+                                >
+                                    {renderMiniPreview(layout, pageImages[pageNumber])}
+                                </SortablePageItem>
+                            );
+                        })}
+                    </div>
+                </SortableContext>
+            </DndContext>
 
             <div style={styles.sidebarActions}>
                 <PrimaryButton onClick={onAddPage}>

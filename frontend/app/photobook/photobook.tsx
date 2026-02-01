@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { arrayMove } from "@dnd-kit/sortable";
 import { viewPhotobook, updatePhotobookTitle } from "networking/NetworkService";
 import { LayoutSelector, type LayoutType } from "UserInterface/LayoutSelector";
 import SideContent from "./SideContent";
@@ -17,6 +18,7 @@ export default function Photobook() {
   const [pageData, setPageData] = useState<{ [pageNumber: number]: PageData }>({});
   const [pageLayouts, setPageLayouts] = useState<{ [pageNumber: number]: LayoutType }>({});
   const [totalPages, setTotalPages] = useState(1);
+  const [pageOrder, setPageOrder] = useState<number[]>([1]);
   const [showLayoutSelector, setShowLayoutSelector] = useState(false);
   const photobookKey = searchParams.get("key") || "";
 
@@ -34,6 +36,12 @@ export default function Photobook() {
     }
     setPageData(initialPageData);
     setPageLayouts(initialLayouts);
+
+    // Initialize pageOrder if it doesn't match totalPages
+    if (pageOrder.length !== totalPages) {
+      const newOrder = Array.from({ length: totalPages }, (_, i) => i + 1);
+      setPageOrder(newOrder);
+    }
   }, [totalPages]);
 
   const handleAddPage = (layout: LayoutType) => {
@@ -47,7 +55,12 @@ export default function Photobook() {
       ...prev,
       [newPageNumber]: layout,
     }));
+    setPageOrder((prev) => [...prev, newPageNumber]);
     setSelectedPage(newPageNumber);
+  };
+
+  const handleReorderPages = (oldIndex: number, newIndex: number) => {
+    setPageOrder((prev) => arrayMove(prev, oldIndex, newIndex));
   };
 
   useEffect(() => {
@@ -99,9 +112,10 @@ export default function Photobook() {
     <div className="photobook-container">
       <SideContent
         selectedPage={selectedPage}
-        totalPages={totalPages}
+        pageOrder={pageOrder}
         onPageSelect={setSelectedPage}
         onAddPage={() => setShowLayoutSelector(true)}
+        onReorderPages={handleReorderPages}
         pageLayouts={pageLayouts}
         pageImages={Object.fromEntries(
           Object.entries(pageData).map(([k, v]) => [k, v?.images || {}])
