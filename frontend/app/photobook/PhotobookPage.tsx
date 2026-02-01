@@ -26,18 +26,19 @@ export default function PhotobookPage({
   onImageRemovedLocal: (dropZoneIndex: number) => void;
   layout: LayoutType;
 }) {
-  const handleDrop = (file: File, coords: any, dropZoneIndex: number) => {
+  const handleDrop = (file: File, _coords: any, dropZoneIndex: number) => {
     const reader = new FileReader();
     reader.readAsDataURL(file.data);
     reader.onload = () => {
-      const coordsWithDropzone = {
-        ...(coords || {}),
+      uploadImage(
+        photobookKey,
+        reader.result as string,
         dropZoneIndex,
-        pageNumber: selectedPage,
-      } as any;
-      uploadImage(photobookKey, reader.result as string, coordsWithDropzone)
+        selectedPage,
+        layout
+      )
         .then(() => {
-          onImageUpdated(dropZoneIndex!, reader.result as string);
+          onImageUpdated(dropZoneIndex, reader.result as string);
         })
         .catch((error) => {
           console.error("Error uploading image:", error);
@@ -50,7 +51,7 @@ export default function PhotobookPage({
 
   const handleRemove = (dropZoneIndex: number) => {
     onImageRemovedLocal(dropZoneIndex);
-    removeImage(photobookKey, dropZoneIndex).catch((error) => {
+    removeImage(photobookKey, dropZoneIndex, selectedPage).catch((error) => {
       console.error("Error removing image from server:", error);
     });
   };

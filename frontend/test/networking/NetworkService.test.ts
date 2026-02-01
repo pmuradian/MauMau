@@ -1,40 +1,51 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
-  createPhotobook, 
-  viewPhotobook, 
-  uploadImage, 
-  removeImage, 
-  updatePhotobookTitle, 
-  generatePDF 
+import {
+  createPhotobook,
+  viewPhotobook,
+  uploadImage,
+  removeImage,
+  updatePhotobookTitle,
+  generatePDF
 } from '../../app/networking/NetworkService';
 
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+};
+Object.defineProperty(global, 'localStorage', { value: mockLocalStorage });
+
 describe('NetworkService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLocalStorage.getItem.mockReturnValue('test-token');
   });
+
+  const expectedAuthHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer test-token',
+  };
 
   describe('createPhotobook', () => {
     it('should create photobook successfully', async () => {
       const mockResponse = { key: 'test-key-123' };
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: () => Promise.resolve(mockResponse)
       });
 
-      const result = await createPhotobook('My Photobook', 'A4', 10);
+      const result = await createPhotobook('My Photobook');
 
       expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'My Photobook',
-          pageFormat: 'A4',
-          pageCount: 10
-        })
+        headers: expectedAuthHeaders,
+        body: JSON.stringify({ title: 'My Photobook' })
       });
 
       expect(result).toEqual(mockResponse);
@@ -46,11 +57,12 @@ describe('NetworkService', () => {
       const mockPhotobook = {
         title: 'Test Photobook',
         description: 'Test Description',
-        images: []
+        pages: []
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: () => Promise.resolve(mockPhotobook)
       });
 
@@ -60,7 +72,7 @@ describe('NetworkService', () => {
         'http://localhost:3000/photobook?key=test-key',
         {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+          headers: expectedAuthHeaders
         }
       );
 
@@ -73,22 +85,24 @@ describe('NetworkService', () => {
       const mockResponse = { success: true, dropZoneIndex: 0 };
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: () => Promise.resolve(mockResponse)
       });
 
       const imageData = 'data:image/jpeg;base64,test-data';
-      const coords = { x: 100, y: 200, width: 300, height: 400, dropZoneIndex: 0 };
 
-      const result = await uploadImage('test-key', imageData, coords);
+      const result = await uploadImage('test-key', imageData, 0, 1, 'horizontal-triplet');
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/upload?key=test-key',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expectedAuthHeaders,
           body: JSON.stringify({
             img: imageData,
-            coords: coords
+            dropZoneIndex: 0,
+            pageNumber: 1,
+            layout: 'horizontal-triplet'
           })
         }
       );
@@ -103,8 +117,8 @@ describe('NetworkService', () => {
         text: () => Promise.resolve('Bad Request')
       });
 
-      await expect(uploadImage('test-key', 'image-data')).rejects.toThrow(
-        'Upload failed: 400 Bad Request'
+      await expect(uploadImage('test-key', 'image-data', 0)).rejects.toThrow(
+        'Request failed: 400 Bad Request'
       );
     });
   });
@@ -114,16 +128,17 @@ describe('NetworkService', () => {
       const mockResponse = { success: true };
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: () => Promise.resolve(mockResponse)
       });
 
-      const result = await removeImage('test-key', 0);
+      const result = await removeImage('test-key', 0, 1);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/remove-image?key=test-key&dropZoneIndex=0',
+        'http://localhost:3000/remove-image?key=test-key&dropZoneIndex=0&pageNumber=1',
         {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
+          headers: expectedAuthHeaders
         }
       );
 
@@ -136,6 +151,7 @@ describe('NetworkService', () => {
       const mockResponse = { success: true, title: 'New Title' };
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: () => Promise.resolve(mockResponse)
       });
 
@@ -145,7 +161,7 @@ describe('NetworkService', () => {
         'http://localhost:3000/update-title?key=test-key',
         {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expectedAuthHeaders,
           body: JSON.stringify({ title: 'New Title' })
         }
       );
@@ -159,6 +175,7 @@ describe('NetworkService', () => {
       const mockBlob = new Blob(['pdf-data'], { type: 'application/pdf' });
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         blob: () => Promise.resolve(mockBlob)
       });
 
@@ -166,7 +183,10 @@ describe('NetworkService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/generate-pdf?key=test-key',
-        { method: 'GET' }
+        {
+          method: 'GET',
+          headers: expectedAuthHeaders
+        }
       );
 
       expect(result).toEqual(mockBlob);
@@ -180,7 +200,7 @@ describe('NetworkService', () => {
       });
 
       await expect(generatePDF('test-key')).rejects.toThrow(
-        'PDF generation failed: 500 Internal Server Error'
+        'Request failed: 500 Internal Server Error'
       );
     });
   });
