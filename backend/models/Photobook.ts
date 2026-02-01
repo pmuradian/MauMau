@@ -10,10 +10,6 @@ export type LayoutType =
 
 export interface IImagePlacement {
   imageData: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
   dropZoneIndex: number;
 }
 
@@ -36,22 +32,6 @@ export interface IPhotobook extends mongoose.Document {
 const imagePlacementSchema = new Schema<IImagePlacement>({
   imageData: {
     type: String,
-    required: true
-  },
-  x: {
-    type: Number,
-    required: true
-  },
-  y: {
-    type: Number,
-    required: true
-  },
-  width: {
-    type: Number,
-    required: true
-  },
-  height: {
-    type: Number,
     required: true
   },
   dropZoneIndex: {
@@ -115,10 +95,6 @@ photobookSchema.methods.setImage = function(
   pageNumber: number,
   layout: LayoutType,
   imageData: string,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
   dropZoneIndex: number
 ): void {
   let page = this.pages.find((p: IPage) => p.pageNumber === pageNumber);
@@ -135,7 +111,7 @@ photobookSchema.methods.setImage = function(
   page.images = page.images.filter((img: IImagePlacement) => img.dropZoneIndex !== dropZoneIndex);
 
   // Add new image
-  page.images.push({ imageData, x, y, width, height, dropZoneIndex });
+  page.images.push({ imageData, dropZoneIndex });
 };
 
 // Method to remove an image from a page
