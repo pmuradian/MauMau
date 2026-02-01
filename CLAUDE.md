@@ -251,12 +251,16 @@ The photobook component (app/photobook/photobook.tsx) maintains state and syncs 
 - [ ] Add/remove page functionality (partial)
 - [ ] Page format selection (A4 portrait/landscape, square)
 
-### Phase 2: Backend Persistence (Current Focus)
-- [ ] Wire up MongoDB models to API routes (replace DemoStorage)
+### Phase 2: Backend Persistence (In Progress)
+- [x] Wire up MongoDB models to API routes (replace DemoStorage)
+- [x] Link photobooks to authenticated users
+- [x] Simplify image model to use dropZoneIndex only (no coordinates)
+- [x] Add auth middleware to all photobook endpoints
+- [x] Update frontend NetworkService with auth headers
 - [ ] Image storage to filesystem (local dev) with S3-ready interface
-- [ ] Link photobooks to authenticated users
-- [ ] Consolidate two servers into one
+- [ ] Consolidate two servers into one (port 3000 + 3001)
 - [ ] Print-ready PDF export with proper specs
+- [ ] Delete unused storage.ts file
 
 ### Phase 3: Authentication & Accounts
 - [ ] Fix authentication flow
