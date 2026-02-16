@@ -98,14 +98,18 @@ All layouts:
 
 ### Authentication Flow
 
-JWT-based auth with React Context (app/contexts/AuthContext.tsx):
+Dual-token auth with React Context (app/contexts/AuthContext.tsx):
 
 1. **Login/Register** - Forms POST to `/api/auth/login` or `/api/auth/register`
-2. **Token Storage** - JWT saved to `localStorage.getItem('token')`
-3. **Auto-verify** - On app startup, AuthContext calls `/api/auth/me` to validate token
-4. **Context API** - `useAuth()` hook provides `{ user, login, logout, isLoading }`
+2. **Access Token** (15min) - JWT saved to `localStorage`, sent in `Authorization` header
+3. **Refresh Token** (30 days) - HTTP-only cookie, stored hashed in `RefreshToken` collection
+4. **Silent Refresh** - On 401, frontend calls `POST /api/auth/refresh` to get a new access token
+5. **Auto-verify** - On app startup, AuthContext calls `/api/auth/me`, falls back to refresh
+6. **Context API** - `useAuth()` hook provides `{ user, login, logout, isLoading }`
 
 All auth endpoints should be prefixed with `/api/auth/` to distinguish from photobook API.
+
+**TODO:** Auth constants (access token expiry, refresh token TTL, cookie name) are currently hardcoded in `routes/auth.ts`. Move these to a shared config file (e.g. `config/auth.ts`) so they can be adjusted per environment.
 
 ### Routing
 

@@ -17,12 +17,53 @@ function getAuthHeaders(): HeadersInit {
     return headers;
 }
 
-// Handle response with 401 redirect
-async function handleResponse<T>(response: Response, parseAs: 'json' | 'blob' = 'json'): Promise<T> {
-    if (response.status === 401) {
-        // Clear token and redirect to login
+// Silent refresh state — prevents multiple concurrent refresh calls
+let refreshPromise: Promise<string | null> | null = null;
+
+async function silentRefresh(): Promise<string | null> {
+    if (refreshPromise) return refreshPromise;
+
+    refreshPromise = fetch(MauMauURL + "/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+    })
+        .then(async (res) => {
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (data.token) {
+                localStorage.setItem("token", data.token);
+                return data.token as string;
+            }
+            return null;
+        })
+        .catch(() => null)
+        .finally(() => {
+            refreshPromise = null;
+        });
+
+    return refreshPromise;
+}
+
+// Handle response with silent refresh on 401
+async function handleResponse<T>(
+    response: Response,
+    retryFn?: () => Promise<Response>,
+    parseAs: 'json' | 'blob' = 'json'
+): Promise<T> {
+    if (response.status === 401 && retryFn) {
+        const newToken = await silentRefresh();
+        if (newToken) {
+            const retryResponse = await retryFn();
+            return handleResponse<T>(retryResponse, undefined, parseAs);
+        }
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        window.location.href = '/';
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/';
         throw new Error('Session expired. Please log in again.');
     }
 
@@ -38,33 +79,48 @@ async function handleResponse<T>(response: Response, parseAs: 'json' | 'blob' = 
     return response.json() as Promise<T>;
 }
 
+// Helper to make a fetch call with auth and credentials
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+    return fetch(url, {
+        ...options,
+        headers: { ...getAuthHeaders(), ...(options.headers || {}) },
+        credentials: "include",
+    });
+}
+
 export function createPhotobook(title?: string): Promise<{ key: string }> {
-    return fetch(MauMauURL + "/create", {
+    const url = MauMauURL + "/create";
+    const options: RequestInit = {
         method: "POST",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ title }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function viewPhotobook(photobookId: string): Promise<any> {
-    return fetch(MauMauURL + "/photobook?key=" + photobookId, {
-        method: "GET",
-        headers: getAuthHeaders(),
-    }).then((response) => handleResponse(response));
+    const url = MauMauURL + "/photobook?key=" + photobookId;
+    const options: RequestInit = { method: "GET" };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function listPhotobooks(): Promise<any[]> {
-    return fetch(MauMauURL + "/photobooks", {
-        method: "GET",
-        headers: getAuthHeaders(),
-    }).then((response) => handleResponse(response));
+    const url = MauMauURL + "/photobooks";
+    const options: RequestInit = { method: "GET" };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function deletePhotobook(photobookId: string): Promise<{ success: boolean }> {
-    return fetch(MauMauURL + "/photobook?key=" + photobookId, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-    }).then((response) => handleResponse(response));
+    const url = MauMauURL + "/photobook?key=" + photobookId;
+    const options: RequestInit = { method: "DELETE" };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function uploadImage(
@@ -74,16 +130,19 @@ export function uploadImage(
     pageNumber: number = 1,
     layout: string = 'horizontal-triplet'
 ): Promise<{ success: boolean; dropZoneIndex: number }> {
-    return fetch(MauMauURL + "/upload?key=" + photobookId, {
+    const url = MauMauURL + "/upload?key=" + photobookId;
+    const options: RequestInit = {
         method: "POST",
-        headers: getAuthHeaders(),
         body: JSON.stringify({
             img: image,
             dropZoneIndex,
             pageNumber,
             layout,
         }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function removeImage(
@@ -92,32 +151,38 @@ export function removeImage(
     pageNumber: number = 1
 ): Promise<{ success: boolean }> {
     const url = `${MauMauURL}/remove-image?key=${photobookId}&dropZoneIndex=${dropZoneIndex}&pageNumber=${pageNumber}`;
-    return fetch(url, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-    }).then((response) => handleResponse(response));
+    const options: RequestInit = { method: "DELETE" };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function addPage(
     photobookId: string,
     layout: string = 'horizontal-triplet'
 ): Promise<{ success: boolean; pageNumber: number }> {
-    return fetch(MauMauURL + "/add-page?key=" + photobookId, {
+    const url = MauMauURL + "/add-page?key=" + photobookId;
+    const options: RequestInit = {
         method: "POST",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ layout }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function updatePageOrder(
     photobookId: string,
     order: number[]
 ): Promise<{ success: boolean }> {
-    return fetch(MauMauURL + "/page-order?key=" + photobookId, {
+    const url = MauMauURL + "/page-order?key=" + photobookId;
+    const options: RequestInit = {
         method: "PUT",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ order }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function updatePageLayout(
@@ -125,27 +190,34 @@ export function updatePageLayout(
     pageNumber: number,
     layout: string
 ): Promise<{ success: boolean }> {
-    return fetch(MauMauURL + "/page-layout?key=" + photobookId, {
+    const url = MauMauURL + "/page-layout?key=" + photobookId;
+    const options: RequestInit = {
         method: "PUT",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ pageNumber, layout }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function updatePhotobookTitle(
     photobookId: string,
     title: string
 ): Promise<{ success: boolean; title: string }> {
-    return fetch(MauMauURL + "/update-title?key=" + photobookId, {
+    const url = MauMauURL + "/update-title?key=" + photobookId;
+    const options: RequestInit = {
         method: "PUT",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ title }),
-    }).then((response) => handleResponse(response));
+    };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
 }
 
 export function generatePDF(photobookId: string): Promise<Blob> {
-    return fetch(MauMauURL + "/generate-pdf?key=" + photobookId, {
-        method: "GET",
-        headers: getAuthHeaders(),
-    }).then((response) => handleResponse<Blob>(response, 'blob'));
+    const url = MauMauURL + "/generate-pdf?key=" + photobookId;
+    const options: RequestInit = { method: "GET" };
+    return authFetch(url, options).then((response) =>
+        handleResponse<Blob>(response, () => authFetch(url, options), 'blob')
+    );
 }

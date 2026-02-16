@@ -28,16 +28,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on app start
     const token = localStorage.getItem('token');
     if (token) {
-      // Verify token with backend
+      // Try to verify the access token
       fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.ok) return res.json();
+        // Access token expired — try silent refresh
+        return fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+        }).then(refreshRes => {
+          if (!refreshRes.ok) throw new Error('Refresh failed');
+          return refreshRes.json();
+        }).then(data => {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
+          return data;
+        });
+      })
       .then(data => {
         if (data.user) {
           setUser(data.user);
@@ -62,8 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    }).finally(() => {
+      localStorage.removeItem('token');
+      setUser(null);
+    });
   };
 
   const value = {
