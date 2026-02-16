@@ -7,6 +7,26 @@ global.fetch = vi.fn();
 global.URL.createObjectURL = vi.fn(() => 'mock-url');
 global.URL.revokeObjectURL = vi.fn();
 
+// Mock window.Image to auto-fire onload (jsdom doesn't load images)
+class MockImage {
+  width = 800;
+  height = 600;
+  onload: (() => void) | null = null;
+  _src = '';
+
+  set src(value: string) {
+    this._src = value;
+    if (this.onload) {
+      setTimeout(() => this.onload?.(), 0);
+    }
+  }
+  get src() {
+    return this._src;
+  }
+}
+(global as any).Image = MockImage;
+(window as any).Image = MockImage;
+
 // Mock FileReader
 global.FileReader = class {
   result: string | ArrayBuffer | null = null;

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HorizontalTriplet } from '../../app/UserInterface/Layouts';
+import { PortraitHorizontalTriplet } from '../../app/UserInterface/PageLayouts/Portrait';
 
-describe('HorizontalTriplet Layout', () => {
+describe('PortraitHorizontalTriplet Layout', () => {
   const mockOnImageDropped = vi.fn();
   const mockOnImageRemoved = vi.fn();
 
@@ -12,7 +12,7 @@ describe('HorizontalTriplet Layout', () => {
 
   it('renders three dropzones in correct layout', () => {
     render(
-      <HorizontalTriplet 
+      <PortraitHorizontalTriplet
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -33,27 +33,27 @@ describe('HorizontalTriplet Layout', () => {
 
   it('applies correct aspect ratios to dropzones', () => {
     render(
-      <HorizontalTriplet 
+      <PortraitHorizontalTriplet
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const dropzones = screen.getAllByText('+').map(icon => 
+    const dropzones = screen.getAllByText('+').map(icon =>
       icon.closest('div[style*="aspect-ratio"]')
     );
 
     // First two dropzones should have default aspect ratio (1)
     expect(dropzones[0]).toHaveStyle({ aspectRatio: '1' });
     expect(dropzones[1]).toHaveStyle({ aspectRatio: '1' });
-    
+
     // Bottom dropzone should have 1.5 aspect ratio
     expect(dropzones[2]).toHaveStyle({ aspectRatio: '1.5' });
   });
 
   it('calls onImageDropped with correct dropzone indices', () => {
     render(
-      <HorizontalTriplet 
+      <PortraitHorizontalTriplet
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -66,7 +66,7 @@ describe('HorizontalTriplet Layout', () => {
 
   it('calls onImageRemoved with correct dropzone indices', () => {
     render(
-      <HorizontalTriplet 
+      <PortraitHorizontalTriplet
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -78,7 +78,7 @@ describe('HorizontalTriplet Layout', () => {
 
   it('applies correct CSS classes for layout', () => {
     render(
-      <HorizontalTriplet 
+      <PortraitHorizontalTriplet
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />

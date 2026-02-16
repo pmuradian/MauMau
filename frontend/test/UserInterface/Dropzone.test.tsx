@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { Dropzone, File } from '../../app/UserInterface/Dropzone';
 
 describe('Dropzone Component', () => {
@@ -13,7 +12,7 @@ describe('Dropzone Component', () => {
 
   it('renders empty dropzone with plus icon and text', () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
@@ -25,20 +24,21 @@ describe('Dropzone Component', () => {
 
   it('shows drag active state when dragging over', async () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const dropzone = screen.getByText('+').closest('div');
-    
-    // Simulate drag enter
-    fireEvent.dragEnter(dropzone!, {
-      dataTransfer: {
-        files: [new File(['test'], 'test.jpg', { type: 'image/jpeg' })]
-      }
-    });
+    const dropzone = screen.getByText('+').closest('[role="presentation"]')!;
+
+    const dataTransfer = {
+      files: [new window.File(['test'], 'test.jpg', { type: 'image/jpeg' })],
+      items: [{ kind: 'file', type: 'image/jpeg' }],
+      types: ['Files'],
+    };
+
+    fireEvent.dragEnter(dropzone, { dataTransfer });
 
     await waitFor(() => {
       expect(screen.getByText('Drop image here')).toBeInTheDocument();
@@ -47,44 +47,46 @@ describe('Dropzone Component', () => {
 
   it('calls onImageDropped when file is dropped', async () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const dropzone = screen.getByText('+').closest('div');
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const dropzone = screen.getByText('+').closest('[role="presentation"]')!;
+    const file = new window.File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
-    fireEvent.drop(dropzone!, {
-      dataTransfer: {
-        files: [file]
-      }
-    });
+    const dataTransfer = {
+      files: [file],
+      items: [{ kind: 'file', type: 'image/jpeg', getAsFile: () => file }],
+      types: ['Files'],
+    };
+
+    fireEvent.drop(dropzone, { dataTransfer });
 
     await waitFor(() => {
       expect(mockOnImageDropped).toHaveBeenCalled();
     });
   });
 
-  it('displays image preview after file is selected', async () => {
+  it('displays image preview after drop', async () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const input = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const dropzone = screen.getByText('+').closest('[role="presentation"]')!;
+    const file = new window.File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
-    // Mock the file input change
-    Object.defineProperty(input, 'files', {
-      value: [file],
-      writable: false,
-    });
+    const dataTransfer = {
+      files: [file],
+      items: [{ kind: 'file', type: 'image/jpeg', getAsFile: () => file }],
+      types: ['Files'],
+    };
 
-    fireEvent.change(input);
+    fireEvent.drop(dropzone, { dataTransfer });
 
     await waitFor(() => {
       const img = screen.getByRole('img');
@@ -95,33 +97,32 @@ describe('Dropzone Component', () => {
 
   it('shows remove button when image is present and calls onImageRemoved', async () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const input = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const dropzone = screen.getByText('+').closest('[role="presentation"]')!;
+    const file = new window.File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
-    Object.defineProperty(input, 'files', {
-      value: [file],
-      writable: false,
-    });
+    const dataTransfer = {
+      files: [file],
+      items: [{ kind: 'file', type: 'image/jpeg', getAsFile: () => file }],
+      types: ['Files'],
+    };
 
-    fireEvent.change(input);
+    fireEvent.drop(dropzone, { dataTransfer });
 
     await waitFor(() => {
-      const removeButton = screen.getByTitle('Remove image');
-      expect(removeButton).toBeInTheDocument();
+      expect(screen.getByTitle('Remove image')).toBeInTheDocument();
     });
 
     const removeButton = screen.getByTitle('Remove image');
     fireEvent.click(removeButton);
 
     expect(mockOnImageRemoved).toHaveBeenCalled();
-    
-    // Image should be removed
+
     await waitFor(() => {
       expect(screen.queryByRole('img')).not.toBeInTheDocument();
       expect(screen.getByText('+')).toBeInTheDocument();
@@ -130,26 +131,26 @@ describe('Dropzone Component', () => {
 
   it('applies custom aspect ratio', () => {
     render(
-      <Dropzone 
+      <Dropzone
         aspectRatio="16/9"
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const dropzone = screen.getByText('+').closest('div');
+    const dropzone = screen.getByText('+').closest('[role="presentation"]');
     expect(dropzone).toHaveStyle({ aspectRatio: '16/9' });
   });
 
   it('only accepts image files', () => {
     render(
-      <Dropzone 
+      <Dropzone
         onImageDropped={mockOnImageDropped}
         onImageRemoved={mockOnImageRemoved}
       />
     );
 
-    const input = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
-    expect(input).toHaveAttribute('accept', 'image/*');
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input).toHaveAttribute('accept', 'image/*,.jpeg,.png,.gif,.webp,.svg');
   });
 });
