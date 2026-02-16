@@ -27,6 +27,10 @@ export interface IPhotobook extends mongoose.Document {
   pageOrder: number[];
   createdAt: Date;
   updatedAt: Date;
+  setImage(pageNumber: number, layout: LayoutType, imageData: string, dropZoneIndex: number): void;
+  removeImage(pageNumber: number, dropZoneIndex: number): boolean;
+  setPageOrder(newOrder: number[]): void;
+  addPage(layout?: LayoutType): number;
 }
 
 const imagePlacementSchema = new Schema<IImagePlacement>({
