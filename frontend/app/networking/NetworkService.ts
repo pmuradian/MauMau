@@ -1,4 +1,4 @@
-const MauMauURL = "http://localhost:3000";
+const MauMauURL = "/api";
 
 // Get auth token from localStorage
 function getAuthToken(): string | null {

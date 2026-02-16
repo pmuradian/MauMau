@@ -2,12 +2,12 @@
   "name": "photobook-backend",
   "version": "1.0.0",
   "description": "Backend for photobook application",
-  "main": "server.ts",
+  "main": "main.ts",
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "ts-node server.ts",
+    "start": "node dist/main.js",
+    "dev": "ts-node main.ts",
     "build": "tsc",
-    "watch": "ts-node --watch server.ts"
+    "watch": "ts-node --watch main.ts"
   },
   "dependencies": {
     "express": "^4.18.2",

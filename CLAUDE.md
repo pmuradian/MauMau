@@ -46,11 +46,8 @@ npx vitest run <path>    # Run specific test file
 
 ### Backend (from backend/)
 ```bash
-npx ts-node main.ts      # Start photobook API server (port 3000)
-npx ts-node server.ts    # Start auth API server (port 3001)
+npx ts-node main.ts      # Start API server (port 3000)
 ```
-
-**Note:** Currently two separate servers. Need to run both for full functionality.
 
 ## Architecture Overview
 
@@ -125,9 +122,7 @@ Routes are SSR-capable but currently run client-side only.
 
 **Framework:** Express.js with TypeScript
 **Database:** MongoDB with Mongoose ODM
-**Two servers (needs consolidation):**
-- Port 3000: Photobook operations (`main.ts`)
-- Port 3001: Authentication (`server.ts`)
+**Single server** on port 3000 (`main.ts`) — serves both auth and photobook APIs
 
 #### Backend Folder Structure
 ```
@@ -138,8 +133,7 @@ backend/
 │   ├── User.ts              # User schema (name, email, password)
 │   └── Photobook.ts         # Photobook schema with pages/images
 ├── routes/auth.ts           # Auth endpoints
-├── main.ts                  # Photobook API server
-├── server.ts                # Auth API server
+├── main.ts                  # API server (auth + photobook)
 ├── storage.ts               # In-memory DemoStorage (temporary)
 └── pdf-service.ts           # PDF generation with PDFKit
 ```
@@ -175,18 +169,25 @@ backend/
 
 #### API Endpoints
 
-**Photobook Operations (port 3000):**
-- `POST /create` - Create new photobook
-- `GET /photobook?key={id}` - Fetch photobook data
-- `POST /upload?key={id}` - Upload image with coords
-- `DELETE /remove-image?key={id}&dropZoneIndex={n}` - Remove image
-- `PUT /update-title?key={id}` - Update photobook title
-- `GET /generate-pdf?key={id}` - Generate PDF (returns Blob)
+**All endpoints served from port 3000:**
 
-**Auth Operations (port 3001):**
+**Auth:**
 - `POST /api/auth/register` - Create account
 - `POST /api/auth/login` - Login and get token
 - `GET /api/auth/me` - Verify token and get user
+
+**Photobook:**
+- `POST /api/create` - Create new photobook
+- `GET /api/photobook?key={id}` - Fetch photobook data
+- `POST /api/upload?key={id}` - Upload image with coords
+- `DELETE /api/remove-image?key={id}&dropZoneIndex={n}` - Remove image
+- `PUT /api/update-title?key={id}` - Update photobook title
+- `GET /api/photobooks` - List user's photobooks
+- `DELETE /api/photobook?key={id}` - Delete photobook
+- `POST /api/add-page?key={id}` - Add page
+- `PUT /api/page-order?key={id}` - Update page order
+- `PUT /api/page-layout?key={id}` - Update page layout
+- `GET /api/generate-pdf?key={id}` - Generate PDF (returns Blob)
 
 The photobook API uses `?key={photobookId}` query params, not path params.
 
@@ -258,7 +259,7 @@ The photobook component (app/photobook/photobook.tsx) maintains state and syncs 
 - [x] Add auth middleware to all photobook endpoints
 - [x] Update frontend NetworkService with auth headers
 - [ ] Image storage to filesystem (local dev) with S3-ready interface
-- [ ] Consolidate two servers into one (port 3000 + 3001)
+- [x] Consolidate two servers into one (port 3000 + 3001)
 - [ ] Print-ready PDF export with proper specs
 - [ ] Delete unused storage.ts file
 

@@ -1,37 +1,31 @@
 import express, { Response } from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/database';
 import { authenticate, AuthRequest } from './middleware/auth';
 import { PhotobookService } from './services/PhotobookService';
 import { LayoutType } from './models/Photobook';
 import { PDFService } from './pdf-service';
+import authRoutes from './routes/auth';
 
 dotenv.config();
 
 const app = express();
 const port = 3000;
 
-app.use((_, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-
-// Handle preflight requests
-app.options('*', (_, res) => {
-  res.sendStatus(200);
-});
-
+app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint (no auth required)
 app.get('/', (_, res) => {
     res.send('Photobook API is running');
 });
 
-app.post('/upload', authenticate, async (req: AuthRequest, res: Response) => {
+app.post('/api/upload', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -65,7 +59,7 @@ app.post('/upload', authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-app.post('/create', authenticate, async (req: AuthRequest, res: Response) => {
+app.post('/api/create', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const { title } = req.body;
@@ -80,7 +74,7 @@ app.post('/create', authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-app.get('/photobook', authenticate, async (req: AuthRequest, res: Response) => {
+app.get('/api/photobook', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -101,7 +95,7 @@ app.get('/photobook', authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-app.delete('/remove-image', authenticate, async (req: AuthRequest, res: Response) => {
+app.delete('/api/remove-image', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -126,7 +120,7 @@ app.delete('/remove-image', authenticate, async (req: AuthRequest, res: Response
     }
 });
 
-app.put('/update-title', authenticate, async (req: AuthRequest, res: Response) => {
+app.put('/api/update-title', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -151,7 +145,7 @@ app.put('/update-title', authenticate, async (req: AuthRequest, res: Response) =
 });
 
 // List all photobooks for the authenticated user
-app.get('/photobooks', authenticate, async (req: AuthRequest, res: Response) => {
+app.get('/api/photobooks', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobooks = await PhotobookService.listByUser(userId);
@@ -163,7 +157,7 @@ app.get('/photobooks', authenticate, async (req: AuthRequest, res: Response) => 
 });
 
 // Delete a photobook
-app.delete('/photobook', authenticate, async (req: AuthRequest, res: Response) => {
+app.delete('/api/photobook', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -187,7 +181,7 @@ app.delete('/photobook', authenticate, async (req: AuthRequest, res: Response) =
 });
 
 // Add a new page to a photobook
-app.post('/add-page', authenticate, async (req: AuthRequest, res: Response) => {
+app.post('/api/add-page', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -212,7 +206,7 @@ app.post('/add-page', authenticate, async (req: AuthRequest, res: Response) => {
 });
 
 // Update page order
-app.put('/page-order', authenticate, async (req: AuthRequest, res: Response) => {
+app.put('/api/page-order', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -237,7 +231,7 @@ app.put('/page-order', authenticate, async (req: AuthRequest, res: Response) => 
 });
 
 // Update page layout
-app.put('/page-layout', authenticate, async (req: AuthRequest, res: Response) => {
+app.put('/api/page-layout', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -261,7 +255,7 @@ app.put('/page-layout', authenticate, async (req: AuthRequest, res: Response) =>
     }
 });
 
-app.get('/generate-pdf', authenticate, async (req: AuthRequest, res: Response) => {
+app.get('/api/generate-pdf', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
@@ -286,6 +280,12 @@ app.get('/generate-pdf', authenticate, async (req: AuthRequest, res: Response) =
         console.error('Error generating PDF:', error);
         res.status(500).json({ error: 'Failed to generate PDF' });
     }
+});
+
+// Error handling middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
 });
 
 // Connect to MongoDB then start server

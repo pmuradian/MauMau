@@ -42,7 +42,7 @@ describe('NetworkService', () => {
 
       const result = await createPhotobook('My Photobook');
 
-      expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/create', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/create', {
         method: 'POST',
         headers: expectedAuthHeaders,
         body: JSON.stringify({ title: 'My Photobook' })
@@ -69,7 +69,7 @@ describe('NetworkService', () => {
       const result = await viewPhotobook('test-key');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/photobook?key=test-key',
+        '/api/photobook?key=test-key',
         {
           method: 'GET',
           headers: expectedAuthHeaders
@@ -94,7 +94,7 @@ describe('NetworkService', () => {
       const result = await uploadImage('test-key', imageData, 0, 1, 'horizontal-triplet');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/upload?key=test-key',
+        '/api/upload?key=test-key',
         {
           method: 'POST',
           headers: expectedAuthHeaders,
@@ -135,7 +135,7 @@ describe('NetworkService', () => {
       const result = await removeImage('test-key', 0, 1);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/remove-image?key=test-key&dropZoneIndex=0&pageNumber=1',
+        '/api/remove-image?key=test-key&dropZoneIndex=0&pageNumber=1',
         {
           method: 'DELETE',
           headers: expectedAuthHeaders
@@ -158,7 +158,7 @@ describe('NetworkService', () => {
       const result = await updatePhotobookTitle('test-key', 'New Title');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/update-title?key=test-key',
+        '/api/update-title?key=test-key',
         {
           method: 'PUT',
           headers: expectedAuthHeaders,
@@ -182,7 +182,7 @@ describe('NetworkService', () => {
       const result = await generatePDF('test-key');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/generate-pdf?key=test-key',
+        '/api/generate-pdf?key=test-key',
         {
           method: 'GET',
           headers: expectedAuthHeaders
