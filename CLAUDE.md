@@ -118,13 +118,13 @@ Dual-token auth with React Context (app/contexts/AuthContext.tsx):
 
 All auth endpoints should be prefixed with `/api/auth/` to distinguish from photobook API.
 
-**TODO:** Auth constants (access token expiry, refresh token TTL, cookie name) are currently hardcoded in `routes/auth.ts`. Move these to a shared config file (e.g. `config/auth.ts`) so they can be adjusted per environment.
+Auth constants (access token expiry, refresh token TTL, cookie name) are centralised in `backend/config/auth.ts`.
 
 ### Routing
 
 React Router 7 with file-based routes (app/routes.ts):
 
-- Index route → `routes/home.tsx`
+- Index route → `routes/home.tsx` (user dashboard — list, open, delete, create photobooks)
 - `/login` → `routes/login.tsx`
 - `/register` → `routes/register.tsx`
 - `/photobook` → `photobook/photobook.tsx`
@@ -140,19 +140,23 @@ Routes are SSR-capable but currently run client-side only.
 #### Backend Folder Structure
 ```
 backend/
-├── config/database.ts       # MongoDB connection
+├── config/
+│   ├── database.ts           # MongoDB connection
+│   └── auth.ts               # Auth constants (JWT_SECRET, token expiry, cookie name)
 ├── middleware/auth.ts        # JWT auth middleware
 ├── models/
 │   ├── User.ts               # User schema (name, email, password)
 │   └── Photobook.ts          # Photobook schema with pages/images + validation constants
 ├── routes/auth.ts            # Auth endpoints
 ├── services/
-│   └── PhotobookService.ts   # Business logic for photobook operations
+│   └── PhotobookService.ts   # Business logic for photobook operations (incl. file cleanup)
 ├── storage/
 │   ├── IStorageProvider.ts   # Interface: getUploadUrl(), deleteFile(), isValidUrl()
 │   ├── LocalStorageProvider.ts # Saves to backend/uploads/, serves via Express static
 │   ├── S3StorageProvider.ts  # Stub — TODO: implement with @aws-sdk/s3-request-presigner
 │   └── index.ts              # Factory: reads STORAGE_PROVIDER env var, exports singleton
+├── utils/
+│   └── validation.ts         # validatePageParams(), contentTypeToExtension()
 ├── uploads/                  # Runtime image storage (local dev only, gitignored)
 ├── main.ts                   # API server (auth + photobook)
 └── pdf-service.ts            # PDF generation with PDFKit
@@ -213,7 +217,7 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 
 - **URL validation**: `storageProvider.isValidUrl(url)` is called in `POST /api/confirm-upload` before storing and in `pdf-service.ts` before fetching. Prevents URL injection and SSRF attacks.
 - **Path traversal**: `PUT /api/local-upload/:filename` uses `path.basename()` + strict UUID+extension regex (`/^[0-9a-f-]{36}\.(jpg|png|webp|gif|heic|heif)$/`) before writing to disk.
-- **Input validation**: `validatePageParams()` in `main.ts` enforces integer bounds on `pageNumber` (1–200) and `dropZoneIndex` (0–9) on all relevant endpoints.
+- **Input validation**: `validatePageParams()` in `utils/validation.ts` enforces integer bounds on `pageNumber` (1–200) and `dropZoneIndex` (0–9) on all relevant endpoints.
 
 ### Styling Architecture
 
@@ -222,6 +226,7 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 - Global styles: `app/app.css`
 - Photobook-specific: `app/photobook/photobook.css`
 - Auth pages: `app/routes/auth.css`
+- Dashboard: `app/routes/home.css`
 - Layout selector: `app/UserInterface/Styles/layout-selector.css`
 
 **A4 Page Format:**
@@ -260,7 +265,7 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 2. Follow existing patterns: use `authFetch` + `handleResponse` for silent token refresh
 3. Use query params `?key={photobookId}` for photobook-related endpoints
 4. Return typed promises: `Promise<any>` or `Promise<Blob>` for PDFs
-5. Add validation using `validatePageParams()` if endpoint takes `pageNumber`/`dropZoneIndex`
+5. Add validation using `validatePageParams()` from `utils/validation.ts` if endpoint takes `pageNumber`/`dropZoneIndex`
 
 ### Image Upload (Frontend)
 
@@ -284,6 +289,7 @@ To wire up S3:
 1. Install `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` in `backend/`
 2. Implement `backend/storage/S3StorageProvider.ts` (see TODOs in file)
 3. Set env vars: `STORAGE_PROVIDER=s3`, `AWS_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+4. Set `CORS_ORIGIN` to your frontend URL (defaults to `http://localhost:5173`)
 4. Configure S3 bucket CORS to allow PUT from your frontend origin
 
 ## Roadmap
@@ -309,8 +315,8 @@ To wire up S3:
 
 ### Phase 3: Authentication & Accounts (Partially Complete)
 - [x] Refresh token mechanism (avoid session expiry during editing)
+- [x] User dashboard with saved photobooks (list, open, delete, create)
 - [ ] Fix authentication flow (edge cases)
-- [ ] User dashboard with saved photobooks
 - [ ] Order history
 
 ### Phase 4: Security & Hardening ✓ (Complete)
