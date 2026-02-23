@@ -20,8 +20,8 @@ export class LocalStorageProvider implements IStorageProvider {
     const filePath = path.join(UPLOADS_DIR, filename);
     try {
       await fs.unlink(filePath);
-    } catch (err: any) {
-      if (err.code !== 'ENOENT') throw err;
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
     }
   }
 

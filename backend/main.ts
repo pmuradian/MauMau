@@ -8,21 +8,24 @@ import { v4 as uuidv4 } from 'uuid';
 import connectDB from './config/database';
 import { authenticate, AuthRequest } from './middleware/auth';
 import { PhotobookService } from './services/PhotobookService';
-import { LayoutType, IPage, IImagePlacement } from './models/Photobook';
+import { LayoutType } from './models/Photobook';
 import { PDFService } from './pdf-service';
 import authRoutes from './routes/auth';
 import { storageProvider } from './storage';
-import { MAX_PAGES, MAX_DROP_ZONE_INDEX } from './models/Photobook';
+import { validatePageParams, contentTypeToExtension } from './utils/validation';
 
 dotenv.config();
 
 const app = express();
 const port = 3000;
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const UPLOAD_SIZE_LIMIT = process.env.UPLOAD_SIZE_LIMIT || '50mb';
+
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(cookieParser());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: UPLOAD_SIZE_LIMIT }));
+app.use(express.urlencoded({ limit: UPLOAD_SIZE_LIMIT, extended: true }));
 
 // Serve locally uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -35,37 +38,6 @@ app.get('/', (_, res) => {
     res.send('Photobook API is running');
 });
 
-// Helper: validate page number and dropzone index from user input
-function validatePageParams(
-    pageNumber: unknown,
-    dropZoneIndex?: unknown
-): string | null {
-    const page = Number(pageNumber);
-    if (!Number.isInteger(page) || page < 1 || page > MAX_PAGES) {
-        return `pageNumber must be an integer between 1 and ${MAX_PAGES}`;
-    }
-    if (dropZoneIndex !== undefined) {
-        const dz = Number(dropZoneIndex);
-        if (!Number.isInteger(dz) || dz < 0 || dz > MAX_DROP_ZONE_INDEX) {
-            return `dropZoneIndex must be an integer between 0 and ${MAX_DROP_ZONE_INDEX}`;
-        }
-    }
-    return null;
-}
-
-// Helper: map content-type to file extension
-function contentTypeToExtension(ct: string): string {
-    const map: Record<string, string> = {
-        'image/jpeg': 'jpg',
-        'image/jpg':  'jpg',
-        'image/png':  'png',
-        'image/webp': 'webp',
-        'image/gif':  'gif',
-        'image/heic': 'heic',
-        'image/heif': 'heif',
-    };
-    return map[ct.toLowerCase()] ?? 'jpg';
-}
 
 // Step 1: Request a presigned/local upload URL
 app.get('/api/upload-url', authenticate, async (req: AuthRequest, res: Response) => {
@@ -86,7 +58,7 @@ app.get('/api/upload-url', authenticate, async (req: AuthRequest, res: Response)
 app.put(
     '/api/local-upload/:filename',
     authenticate,
-    express.raw({ type: '*/*', limit: '50mb' }),
+    express.raw({ type: '*/*', limit: UPLOAD_SIZE_LIMIT }),
     async (req: AuthRequest, res: Response) => {
         try {
             // path.basename strips all directory components regardless of encoding,
@@ -205,26 +177,10 @@ app.delete('/api/remove-image', authenticate, async (req: AuthRequest, res: Resp
             return res.status(400).json({ error: validationError });
         }
 
-        // Retrieve the image URL before removing from DB
-        const photobook = await PhotobookService.get(userId, photobookId);
-        if (!photobook) {
-            return res.status(404).json({ error: 'Photobook not found' });
-        }
-        const page = photobook.pages.find((p: IPage) => p.pageNumber === pageNumber);
-        const image = page?.images.find((img: IImagePlacement) => img.dropZoneIndex === dropZoneIndex);
-        const imageUrl = image?.imageUrl;
-
         const success = await PhotobookService.removeImage(userId, photobookId, pageNumber, dropZoneIndex);
 
         if (!success) {
             return res.status(404).json({ error: 'Image not found' });
-        }
-
-        // Delete file from storage after successful DB removal
-        if (imageUrl) {
-            storageProvider.deleteFile(imageUrl).catch((err) =>
-                console.error('Failed to delete image file from storage:', err)
-            );
         }
 
         console.log(`Image removed from photobook ${photobookId}, page ${pageNumber}, dropzone ${dropZoneIndex}`);
@@ -281,25 +237,11 @@ app.delete('/api/photobook', authenticate, async (req: AuthRequest, res: Respons
             return res.status(400).json({ error: 'Missing photobook key' });
         }
 
-        // Collect all image URLs before deleting
-        const photobook = await PhotobookService.get(userId, photobookId);
-        const imageUrls: string[] = [];
-        if (photobook) {
-            for (const page of photobook.pages) {
-                for (const img of page.images) {
-                    if (img.imageUrl) imageUrls.push(img.imageUrl);
-                }
-            }
-        }
-
         const success = await PhotobookService.delete(userId, photobookId);
 
         if (!success) {
             return res.status(404).json({ error: 'Photobook not found' });
         }
-
-        // Delete all image files from storage
-        await Promise.allSettled(imageUrls.map((url) => storageProvider.deleteFile(url)));
 
         console.log(`Photobook ${photobookId} deleted`);
         res.json({ success: true });

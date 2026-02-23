@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
-import { Photobook, IPhotobook, LayoutType, IPage } from '../models/Photobook';
+import { Photobook, IPhotobook, LayoutType, IPage, IImagePlacement } from '../models/Photobook';
+import { storageProvider } from '../storage';
+
 
 export class PhotobookService {
   /**
@@ -15,6 +17,20 @@ export class PhotobookService {
 
     await photobook.save();
     return photobook._id.toString();
+  }
+
+  /**
+   * Fetch a photobook and run a callback with it, returning `notFound` if it doesn't exist.
+   */
+  private static async withPhotobook<T>(
+    userId: string,
+    photobookId: string,
+    notFound: T,
+    fn: (photobook: IPhotobook) => Promise<T>
+  ): Promise<T> {
+    const photobook = await this.get(userId, photobookId);
+    if (!photobook) return notFound;
+    return fn(photobook);
   }
 
   /**
@@ -48,12 +64,27 @@ export class PhotobookService {
       return false;
     }
 
+    const photobook = await this.get(userId, photobookId);
+    const imageUrls: string[] = [];
+    if (photobook) {
+      for (const page of photobook.pages) {
+        for (const img of page.images) {
+          if (img.imageUrl) imageUrls.push(img.imageUrl);
+        }
+      }
+    }
+
     const result = await Photobook.deleteOne({
       _id: new Types.ObjectId(photobookId),
       userId: new Types.ObjectId(userId)
     });
 
-    return result.deletedCount > 0;
+    if (result.deletedCount > 0) {
+      await Promise.allSettled(imageUrls.map((url) => storageProvider.deleteFile(url)));
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -67,20 +98,11 @@ export class PhotobookService {
     pageNumber: number,
     layout: LayoutType
   ): Promise<boolean> {
-    const photobook = await this.get(userId, photobookId);
-    if (!photobook) {
-      return false;
-    }
-
-    photobook.setImage(
-      pageNumber,
-      layout,
-      imageUrl,
-      dropZoneIndex
-    );
-
-    await photobook.save();
-    return true;
+    return this.withPhotobook(userId, photobookId, false, async (photobook) => {
+      photobook.setImage(pageNumber, layout, imageUrl, dropZoneIndex);
+      await photobook.save();
+      return true;
+    });
   }
 
   /**
@@ -92,16 +114,22 @@ export class PhotobookService {
     pageNumber: number,
     dropZoneIndex: number
   ): Promise<boolean> {
-    const photobook = await this.get(userId, photobookId);
-    if (!photobook) {
-      return false;
-    }
+    return this.withPhotobook(userId, photobookId, false, async (photobook) => {
+      const page = photobook.pages.find((p: IPage) => p.pageNumber === pageNumber);
+      const image = page?.images.find((img: IImagePlacement) => img.dropZoneIndex === dropZoneIndex);
+      const imageUrl = image?.imageUrl;
 
-    const removed = photobook.removeImage(pageNumber, dropZoneIndex);
-    if (removed) {
-      await photobook.save();
-    }
-    return removed;
+      const removed = photobook.removeImage(pageNumber, dropZoneIndex);
+      if (removed) {
+        await photobook.save();
+        if (imageUrl) {
+          storageProvider.deleteFile(imageUrl).catch((err) =>
+            console.error('Failed to delete image file from storage:', err)
+          );
+        }
+      }
+      return removed;
+    });
   }
 
   /**
@@ -135,14 +163,11 @@ export class PhotobookService {
     photobookId: string,
     layout: LayoutType = 'horizontal-triplet'
   ): Promise<number | null> {
-    const photobook = await this.get(userId, photobookId);
-    if (!photobook) {
-      return null;
-    }
-
-    const pageNumber = photobook.addPage(layout);
-    await photobook.save();
-    return pageNumber;
+    return this.withPhotobook(userId, photobookId, null, async (photobook) => {
+      const pageNumber = photobook.addPage(layout);
+      await photobook.save();
+      return pageNumber;
+    });
   }
 
   /**
@@ -153,14 +178,11 @@ export class PhotobookService {
     photobookId: string,
     order: number[]
   ): Promise<boolean> {
-    const photobook = await this.get(userId, photobookId);
-    if (!photobook) {
-      return false;
-    }
-
-    photobook.setPageOrder(order);
-    await photobook.save();
-    return true;
+    return this.withPhotobook(userId, photobookId, false, async (photobook) => {
+      photobook.setPageOrder(order);
+      await photobook.save();
+      return true;
+    });
   }
 
   /**
@@ -172,18 +194,13 @@ export class PhotobookService {
     pageNumber: number,
     layout: LayoutType
   ): Promise<boolean> {
-    const photobook = await this.get(userId, photobookId);
-    if (!photobook) {
-      return false;
-    }
+    return this.withPhotobook(userId, photobookId, false, async (photobook) => {
+      const page = photobook.pages.find((p: IPage) => p.pageNumber === pageNumber);
+      if (!page) return false;
 
-    const page = photobook.pages.find((p: IPage) => p.pageNumber === pageNumber);
-    if (!page) {
-      return false;
-    }
-
-    page.layout = layout;
-    await photobook.save();
-    return true;
+      page.layout = layout;
+      await photobook.save();
+      return true;
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
+import { JWT_SECRET } from '../config/auth';
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -14,8 +15,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return res.status(401).json({ message: 'No token provided' });
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
     
     const user = await User.findById(decoded.userId);
     if (!user) {

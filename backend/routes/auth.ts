@@ -3,19 +3,16 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
+import { JWT_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_DAYS, REFRESH_COOKIE_NAME } from '../config/auth';
 
 const router = express.Router();
 
-const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_DAYS = 30;
-const REFRESH_COOKIE_NAME = 'refreshToken';
-
-function getJwtSecret(): string {
-  return process.env.JWT_SECRET || 'your-secret-key';
+function generateAccessToken(userId: string): string {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
 }
 
-function generateAccessToken(userId: string): string {
-  return jwt.sign({ userId }, getJwtSecret(), { expiresIn: ACCESS_TOKEN_EXPIRY });
+function serializeUser(user: { _id: unknown; name: string; email: string }) {
+  return { id: user._id, name: user.name, email: user.email };
 }
 
 function generateRefreshToken(): string {
@@ -65,11 +62,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       message: 'User created successfully',
       token: accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
+      user: serializeUser(user),
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -100,11 +93,7 @@ router.post('/login', async (req, res) => {
     res.json({
       message: 'Login successful',
       token: accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
+      user: serializeUser(user),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -135,11 +124,7 @@ router.post('/refresh', async (req, res) => {
 
     res.json({
       token: accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      }
+      user: serializeUser(user),
     });
   } catch (error) {
     console.error('Refresh error:', error);
@@ -172,7 +157,7 @@ router.get('/me', async (req, res) => {
       return res.status(401).json({ message: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, getJwtSecret()) as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
 
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
