@@ -1,124 +1,91 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { DemoStorage, PhotoBook, PageFormat, PageArrangement } from '../storage.ts';
+import { LocalStorageProvider } from '../storage/LocalStorageProvider';
 
-describe('DemoStorage', () => {
-    let storage: DemoStorage;
-    let testPhotoBook: PhotoBook;
+describe('LocalStorageProvider', () => {
+  const provider = new LocalStorageProvider();
 
-    beforeEach(() => {
-        storage = new DemoStorage();
-        testPhotoBook = new PhotoBook('Test Book', PageFormat.A4, 10);
+  describe('isValidUrl', () => {
+    it('should accept a valid local uploads URL', () => {
+      assert.strictEqual(provider.isValidUrl('http://localhost:3000/uploads/abc.jpg'), true);
     });
 
-    describe('createPhotoBook', () => {
-        it('should create a new photobook and return a UUID key', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            
-            assert.strictEqual(typeof key, 'string');
-            assert.strictEqual(key.length, 36); // UUID length
-            
-            const retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.title, 'Test Book');
-            assert.strictEqual(retrieved?.pageFormat, PageFormat.A4);
-            assert.strictEqual(retrieved?.pageCount, 10);
-        });
+    it('should accept URLs with UUID filenames', () => {
+      assert.strictEqual(
+        provider.isValidUrl('http://localhost:3000/uploads/550e8400-e29b-41d4-a716-446655440000.jpg'),
+        true
+      );
     });
 
-    describe('getPhotoBook', () => {
-        it('should return null for non-existent key', () => {
-            const result = storage.getPhotoBook('non-existent-key');
-            assert.strictEqual(result, null);
-        });
-
-        it('should return the correct photobook for valid key', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            const retrieved = storage.getPhotoBook(key);
-            
-            assert.strictEqual(retrieved?.title, testPhotoBook.title);
-            assert.strictEqual(retrieved?.pageFormat, testPhotoBook.pageFormat);
-        });
+    it('should reject URLs from a different host', () => {
+      assert.strictEqual(provider.isValidUrl('http://evil.com/uploads/abc.jpg'), false);
     });
 
-    describe('updatePhotobookTitle', () => {
-        it('should update the title of an existing photobook', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            const newTitle = 'Updated Title';
-            
-            const success = storage.updatePhotobookTitle(key, newTitle);
-            
-            assert.strictEqual(success, true);
-            const retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.title, newTitle);
-        });
-
-        it('should return false for non-existent photobook', () => {
-            const success = storage.updatePhotobookTitle('non-existent', 'New Title');
-            assert.strictEqual(success, false);
-        });
+    it('should reject URLs from a different port', () => {
+      assert.strictEqual(provider.isValidUrl('http://localhost:9999/uploads/abc.jpg'), false);
     });
 
-    describe('addImageToPhotoBook', () => {
-        it('should add image to photobook and create page if needed', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            const imageData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
-            
-            storage.addImageToPhotoBook(key, imageData, 100, 200, 300, 400, 0);
-            
-            const retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.pages.length, 1);
-            assert.strictEqual(retrieved?.pages[0].images.length, 1);
-            
-            const image = retrieved?.pages[0].images[0];
-            assert.strictEqual(image?.x, 100);
-            assert.strictEqual(image?.y, 200);
-            assert.strictEqual(image?.dropZoneIndex, 0);
-        });
-
-        it('should replace existing image in same dropzone', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            const imageData1 = 'data:image/jpeg;base64,image1';
-            const imageData2 = 'data:image/jpeg;base64,image2';
-            
-            storage.addImageToPhotoBook(key, imageData1, 100, 200, 300, 400, 0);
-            storage.addImageToPhotoBook(key, imageData2, 150, 250, 350, 450, 0);
-            
-            const retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.pages[0].images.length, 1);
-            assert.strictEqual(retrieved?.pages[0].images[0].imageData, imageData2);
-        });
+    it('should reject URLs not under /uploads/', () => {
+      assert.strictEqual(provider.isValidUrl('http://localhost:3000/etc/passwd'), false);
+      assert.strictEqual(provider.isValidUrl('http://localhost:3000/api/local-upload/abc.jpg'), false);
     });
 
-    describe('removeImageFromPhotoBook', () => {
-        it('should remove image from specified dropzone', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            const imageData = 'data:image/jpeg;base64,test';
-            
-            storage.addImageToPhotoBook(key, imageData, 100, 200, 300, 400, 0);
-            storage.addImageToPhotoBook(key, imageData, 100, 200, 300, 400, 1);
-            
-            let retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.pages[0].images.length, 2);
-            
-            storage.removeImageFromPhotoBook(key, 0);
-            
-            retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved?.pages[0].images.length, 1);
-            assert.strictEqual(retrieved?.pages[0].images[0].dropZoneIndex, 1);
-        });
+    it('should reject AWS metadata service URLs (SSRF)', () => {
+      assert.strictEqual(provider.isValidUrl('http://169.254.169.254/latest/meta-data/'), false);
     });
 
-    describe('deletePhotoBook', () => {
-        it('should delete photobook and make it inaccessible', () => {
-            const key = storage.createPhotoBook(testPhotoBook);
-            
-            let retrieved = storage.getPhotoBook(key);
-            assert.notStrictEqual(retrieved, null);
-            
-            storage.deletePhotoBook(key);
-            
-            retrieved = storage.getPhotoBook(key);
-            assert.strictEqual(retrieved, null);
-        });
+    it('should reject file:// URIs (SSRF)', () => {
+      assert.strictEqual(provider.isValidUrl('file:///etc/passwd'), false);
     });
+
+    it('should reject path traversal in URL', () => {
+      assert.strictEqual(provider.isValidUrl('http://localhost:3000/uploads/../etc/passwd'), false);
+    });
+
+    it('should reject empty string', () => {
+      assert.strictEqual(provider.isValidUrl(''), false);
+    });
+
+    it('should reject non-URL strings', () => {
+      assert.strictEqual(provider.isValidUrl('not-a-url'), false);
+    });
+  });
+});
+
+describe('local-upload filename validation', () => {
+  // The regex used in the PUT /api/local-upload/:filename endpoint
+  const isValidFilename = (name: string) =>
+    /^[0-9a-f-]{36}\.(jpg|png|webp|gif|heic|heif)$/.test(name);
+
+  it('should accept valid UUID filenames with image extensions', () => {
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.jpg'), true);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.png'), true);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.webp'), true);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.gif'), true);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.heic'), true);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.heif'), true);
+  });
+
+  it('should reject path traversal attempts', () => {
+    assert.strictEqual(isValidFilename('../etc/passwd'), false);
+    assert.strictEqual(isValidFilename('../../etc/passwd'), false);
+    assert.strictEqual(isValidFilename('foo/../bar.jpg'), false);
+  });
+
+  it('should reject executable and dangerous extensions', () => {
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.php'), false);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.sh'), false);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.html'), false);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.svg'), false);
+    assert.strictEqual(isValidFilename('550e8400-e29b-41d4-a716-446655440000.exe'), false);
+  });
+
+  it('should reject non-UUID filenames', () => {
+    assert.strictEqual(isValidFilename('arbitrary-name.jpg'), false);
+    assert.strictEqual(isValidFilename('image.jpg'), false);
+  });
+
+  it('should reject empty string', () => {
+    assert.strictEqual(isValidFilename(''), false);
+  });
 });

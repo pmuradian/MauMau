@@ -24,4 +24,16 @@ export class LocalStorageProvider implements IStorageProvider {
       if (err.code !== 'ENOENT') throw err;
     }
   }
+
+  isValidUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      const base = new URL(BASE_URL);
+      return parsed.hostname === base.hostname &&
+             parsed.port === base.port &&
+             parsed.pathname.startsWith('/uploads/');
+    } catch {
+      return false;
+    }
+  }
 }

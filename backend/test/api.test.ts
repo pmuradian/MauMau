@@ -1,244 +1,207 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import request from 'supertest';
-import express from 'express';
-import { DemoStorage, PhotoBook, PageFormat } from '../storage.ts';
+import mongoose from 'mongoose';
+import { Photobook, MAX_PAGES, MAX_DROP_ZONE_INDEX } from '../models/Photobook';
 
-// Create a test app similar to main.ts but without starting the server
-function createTestApp() {
-    const app = express();
-    const storage = new DemoStorage();
+// Tests for Photobook document methods (setImage, removeImage, addPage, setPageOrder).
+// These replace the deleted DemoStorage tests and cover the same business logic.
+// No DB connection needed — we test in-memory document state only (no save()).
 
-    app.use(express.json({ limit: '500mb' }));
-    app.use(express.urlencoded({ limit: '500mb', extended: true }));
+const TEST_USER_ID = new mongoose.Types.ObjectId().toString();
+const IMAGE_URL = 'http://localhost:3000/uploads/550e8400-e29b-41d4-a716-446655440000.jpg';
+const IMAGE_URL_2 = 'http://localhost:3000/uploads/6ba7b810-9dad-11d1-80b4-00c04fd430c8.jpg';
 
-    app.use((_, res, next) => {
-        res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-        res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        next();
+function makePhotobook(title = 'Test Book') {
+    return new Photobook({
+        userId: new mongoose.Types.ObjectId(TEST_USER_ID),
+        title,
+        pages: [],
+        pageOrder: [],
     });
-
-    // Simplified endpoints for testing
-    app.post('/create', (req, res) => {
-        try {
-            const newBook = new PhotoBook("Test Photobook", PageFormat.A4, 10);
-            const key = storage.createPhotoBook(newBook);
-            res.json({ key });
-        } catch (error) {
-            res.status(500).json({ error: 'Failed to create photobook' });
-        }
-    });
-
-    app.get('/photobook', (req, res) => {
-        try {
-            const photobookId = req.query.key as string;
-            const photobook = storage.getPhotoBook(photobookId);
-            if (photobook) {
-                res.json(photobook);
-            } else {
-                res.status(404).json({ error: 'Photobook not found' });
-            }
-        } catch (error) {
-            res.status(500).json({ error: 'Failed to get photobook' });
-        }
-    });
-
-    app.post('/upload', (req, res) => {
-        try {
-            const photobookId = req.query.key as string;
-            const { img, coords } = req.body;
-            
-            if (!photobookId || !img || !coords) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
-            
-            const { x, y, width, height, dropZoneIndex } = coords;
-            storage.addImageToPhotoBook(photobookId, img, x, y, width, height, dropZoneIndex || 0);
-            
-            res.json({ success: true, dropZoneIndex: dropZoneIndex || 0 });
-        } catch (error) {
-            res.status(500).json({ error: 'Upload failed' });
-        }
-    });
-
-    app.put('/update-title', (req, res) => {
-        try {
-            const photobookId = req.query.key as string;
-            const { title } = req.body;
-            
-            if (!photobookId || !title) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
-            
-            const success = storage.updatePhotobookTitle(photobookId, title);
-            
-            if (success) {
-                res.json({ success: true, title });
-            } else {
-                res.status(404).json({ error: 'Photobook not found' });
-            }
-        } catch (error) {
-            res.status(500).json({ error: 'Title update failed' });
-        }
-    });
-
-    app.delete('/remove-image', (req, res) => {
-        try {
-            const photobookId = req.query.key as string;
-            const dropZoneIndex = parseInt(req.query.dropZoneIndex as string);
-            
-            if (!photobookId || isNaN(dropZoneIndex)) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
-            
-            storage.removeImageFromPhotoBook(photobookId, dropZoneIndex);
-            res.json({ success: true });
-        } catch (error) {
-            res.status(500).json({ error: 'Image removal failed' });
-        }
-    });
-
-    return app;
 }
 
-describe('API Endpoints', () => {
-    let app: express.Application;
+describe('Photobook model', () => {
+    describe('setImage', () => {
+        it('should add an image to a new page', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
 
-    beforeEach(() => {
-        app = createTestApp();
-    });
+            assert.strictEqual(book.pages.length, 1);
+            assert.strictEqual(book.pages[0].pageNumber, 1);
+            assert.strictEqual(book.pages[0].layout, 'horizontal-triplet');
+            assert.strictEqual(book.pages[0].images.length, 1);
+            assert.strictEqual(book.pages[0].images[0].imageUrl, IMAGE_URL);
+            assert.strictEqual(book.pages[0].images[0].dropZoneIndex, 0);
+        });
 
-    describe('POST /create', () => {
-        it('should create a new photobook and return a key', async () => {
-            const response = await request(app)
-                .post('/create')
-                .expect(200);
+        it('should add the page to pageOrder when creating a new page', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
 
-            assert.strictEqual(typeof response.body.key, 'string');
-            assert.strictEqual(response.body.key.length, 36); // UUID length
+            assert.ok(book.pageOrder.includes(1));
+        });
+
+        it('should add multiple images to the same page', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL_2, 1);
+
+            assert.strictEqual(book.pages.length, 1);
+            assert.strictEqual(book.pages[0].images.length, 2);
+        });
+
+        it('should replace an existing image in the same dropzone', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL_2, 0);
+
+            assert.strictEqual(book.pages[0].images.length, 1);
+            assert.strictEqual(book.pages[0].images[0].imageUrl, IMAGE_URL_2);
+        });
+
+        it('should support images on multiple pages', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+            book.setImage(2, 'single-page', IMAGE_URL_2, 0);
+
+            assert.strictEqual(book.pages.length, 2);
+            assert.strictEqual(book.pageOrder.length, 2);
+        });
+
+        it('should reuse an existing page without duplicating it', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL_2, 1);
+
+            assert.strictEqual(book.pages.length, 1);
+            assert.strictEqual(book.pageOrder.filter((n: number) => n === 1).length, 1);
         });
     });
 
-    describe('GET /photobook', () => {
-        it('should return 404 for non-existent photobook', async () => {
-            await request(app)
-                .get('/photobook?key=non-existent')
-                .expect(404);
+    describe('removeImage', () => {
+        it('should remove an image from a dropzone', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL_2, 1);
+
+            const removed = book.removeImage(1, 0);
+
+            assert.strictEqual(removed, true);
+            assert.strictEqual(book.pages[0].images.length, 1);
+            assert.strictEqual(book.pages[0].images[0].dropZoneIndex, 1);
         });
 
-        it('should return photobook data for valid key', async () => {
-            // First create a photobook
-            const createResponse = await request(app)
-                .post('/create')
-                .expect(200);
+        it('should return false when page does not exist', () => {
+            const book = makePhotobook();
 
-            const key = createResponse.body.key;
+            const removed = book.removeImage(99, 0);
 
-            // Then retrieve it
-            const getResponse = await request(app)
-                .get(`/photobook?key=${key}`)
-                .expect(200);
-
-            assert.strictEqual(getResponse.body.title, 'Test Photobook');
-            assert.strictEqual(getResponse.body.pageCount, 10);
-        });
-    });
-
-    describe('POST /upload', () => {
-        it('should upload image successfully', async () => {
-            // Create photobook first
-            const createResponse = await request(app)
-                .post('/create')
-                .expect(200);
-
-            const key = createResponse.body.key;
-            const imageData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
-
-            const uploadResponse = await request(app)
-                .post(`/upload?key=${key}`)
-                .send({
-                    img: imageData,
-                    coords: { x: 100, y: 200, width: 300, height: 400, dropZoneIndex: 0 }
-                })
-                .expect(200);
-
-            assert.strictEqual(uploadResponse.body.success, true);
-            assert.strictEqual(uploadResponse.body.dropZoneIndex, 0);
+            assert.strictEqual(removed, false);
         });
 
-        it('should return 400 for missing fields', async () => {
-            await request(app)
-                .post('/upload?key=test')
-                .send({ img: 'test' }) // Missing coords
-                .expect(400);
+        it('should return false when dropzone has no image', () => {
+            const book = makePhotobook();
+            book.setImage(1, 'horizontal-triplet', IMAGE_URL, 0);
+
+            const removed = book.removeImage(1, 5);
+
+            assert.strictEqual(removed, false);
         });
     });
 
-    describe('PUT /update-title', () => {
-        it('should update photobook title successfully', async () => {
-            // Create photobook first
-            const createResponse = await request(app)
-                .post('/create')
-                .expect(200);
+    describe('addPage', () => {
+        it('should add a new page and return its page number', () => {
+            const book = makePhotobook();
 
-            const key = createResponse.body.key;
-            const newTitle = 'Updated Title';
+            const pageNumber = book.addPage('single-page');
 
-            const updateResponse = await request(app)
-                .put(`/update-title?key=${key}`)
-                .send({ title: newTitle })
-                .expect(200);
-
-            assert.strictEqual(updateResponse.body.success, true);
-            assert.strictEqual(updateResponse.body.title, newTitle);
-
-            // Verify the title was actually updated
-            const getResponse = await request(app)
-                .get(`/photobook?key=${key}`)
-                .expect(200);
-
-            assert.strictEqual(getResponse.body.title, newTitle);
+            assert.strictEqual(pageNumber, 1);
+            assert.strictEqual(book.pages.length, 1);
+            assert.strictEqual(book.pages[0].layout, 'single-page');
         });
 
-        it('should return 404 for non-existent photobook', async () => {
-            await request(app)
-                .put('/update-title?key=non-existent')
-                .send({ title: 'New Title' })
-                .expect(404);
+        it('should increment page numbers sequentially', () => {
+            const book = makePhotobook();
+
+            const first = book.addPage();
+            const second = book.addPage();
+
+            assert.strictEqual(first, 1);
+            assert.strictEqual(second, 2);
+        });
+
+        it('should append the new page number to pageOrder', () => {
+            const book = makePhotobook();
+            book.addPage();
+            book.addPage();
+
+            assert.deepStrictEqual(book.pageOrder, [1, 2]);
+        });
+
+        it('should default to horizontal-triplet layout', () => {
+            const book = makePhotobook();
+            book.addPage();
+
+            assert.strictEqual(book.pages[0].layout, 'horizontal-triplet');
         });
     });
 
-    describe('DELETE /remove-image', () => {
-        it('should remove image successfully', async () => {
-            // Create photobook and add image first
-            const createResponse = await request(app)
-                .post('/create')
-                .expect(200);
+    describe('setPageOrder', () => {
+        it('should update the page order', () => {
+            const book = makePhotobook();
+            book.addPage();
+            book.addPage();
+            book.addPage();
 
-            const key = createResponse.body.key;
-            const imageData = 'data:image/jpeg;base64,test';
+            book.setPageOrder([3, 1, 2]);
 
-            await request(app)
-                .post(`/upload?key=${key}`)
-                .send({
-                    img: imageData,
-                    coords: { x: 100, y: 200, width: 300, height: 400, dropZoneIndex: 0 }
-                })
-                .expect(200);
+            assert.deepStrictEqual(book.pageOrder, [3, 1, 2]);
+        });
+    });
 
-            // Remove the image
-            const removeResponse = await request(app)
-                .delete(`/remove-image?key=${key}&dropZoneIndex=0`)
-                .expect(200);
-
-            assert.strictEqual(removeResponse.body.success, true);
+    describe('validation guards', () => {
+        it('should throw when pageNumber is below 1', () => {
+            const book = makePhotobook();
+            assert.throws(
+                () => book.setImage(0, 'horizontal-triplet', IMAGE_URL, 0),
+                /pageNumber must be between 1 and/
+            );
         });
 
-        it('should return 400 for invalid dropZoneIndex', async () => {
-            await request(app)
-                .delete('/remove-image?key=test&dropZoneIndex=invalid')
-                .expect(400);
+        it('should throw when pageNumber exceeds MAX_PAGES', () => {
+            const book = makePhotobook();
+            assert.throws(
+                () => book.setImage(MAX_PAGES + 1, 'horizontal-triplet', IMAGE_URL, 0),
+                /pageNumber must be between 1 and/
+            );
+        });
+
+        it('should throw when dropZoneIndex is negative', () => {
+            const book = makePhotobook();
+            assert.throws(
+                () => book.setImage(1, 'horizontal-triplet', IMAGE_URL, -1),
+                /dropZoneIndex must be between 0 and/
+            );
+        });
+
+        it('should throw when dropZoneIndex exceeds MAX_DROP_ZONE_INDEX', () => {
+            const book = makePhotobook();
+            assert.throws(
+                () => book.setImage(1, 'horizontal-triplet', IMAGE_URL, MAX_DROP_ZONE_INDEX + 1),
+                /dropZoneIndex must be between 0 and/
+            );
+        });
+
+        it('should throw when adding a page beyond MAX_PAGES', () => {
+            const book = makePhotobook();
+            // Fill up to the limit using direct construction to avoid slow loop
+            for (let i = 1; i <= MAX_PAGES; i++) {
+                book.pages.push({ pageNumber: i, layout: 'horizontal-triplet', images: [] } as any);
+            }
+            assert.throws(
+                () => book.addPage(),
+                /cannot have more than/
+            );
         });
     });
 });

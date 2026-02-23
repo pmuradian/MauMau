@@ -11,6 +11,12 @@ export class S3StorageProvider implements IStorageProvider {
   }
 
   async deleteFile(_fileUrl: string): Promise<void> {
+    // TODO: Extract S3 key from fileUrl and call DeleteObjectCommand
+    throw new Error('S3StorageProvider not yet implemented');
+  }
+
+  isValidUrl(_url: string): boolean {
+    // TODO: Validate URL starts with https://{bucket}.s3.{region}.amazonaws.com/
     throw new Error('S3StorageProvider not yet implemented');
   }
 }

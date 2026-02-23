@@ -16,4 +16,10 @@ export interface IStorageProvider {
    * Must not throw if the file does not exist.
    */
   deleteFile(fileUrl: string): Promise<void>;
+
+  /**
+   * Returns true only if the URL was issued by this storage provider.
+   * Used to prevent SSRF and URL injection attacks.
+   */
+  isValidUrl(url: string): boolean;
 }

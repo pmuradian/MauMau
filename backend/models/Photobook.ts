@@ -33,6 +33,10 @@ export interface IPhotobook extends mongoose.Document {
   addPage(layout?: LayoutType): number;
 }
 
+export const MAX_PAGES = 200;
+export const MAX_IMAGES_PER_PAGE = 10;
+export const MAX_DROP_ZONE_INDEX = 9;
+
 const imagePlacementSchema = new Schema<IImagePlacement>({
   imageUrl: {
     type: String,
@@ -40,14 +44,18 @@ const imagePlacementSchema = new Schema<IImagePlacement>({
   },
   dropZoneIndex: {
     type: Number,
-    required: true
+    required: true,
+    min: [0, 'dropZoneIndex must be >= 0'],
+    max: [MAX_DROP_ZONE_INDEX, `dropZoneIndex must be <= ${MAX_DROP_ZONE_INDEX}`]
   }
 }, { _id: false });
 
 const pageSchema = new Schema<IPage>({
   pageNumber: {
     type: Number,
-    required: true
+    required: true,
+    min: [1, 'pageNumber must be >= 1'],
+    max: [MAX_PAGES, `pageNumber must be <= ${MAX_PAGES}`]
   },
   layout: {
     type: String,
@@ -56,7 +64,11 @@ const pageSchema = new Schema<IPage>({
   },
   images: {
     type: [imagePlacementSchema],
-    default: []
+    default: [],
+    validate: {
+      validator: (images: IImagePlacement[]) => images.length <= MAX_IMAGES_PER_PAGE,
+      message: `A page cannot have more than ${MAX_IMAGES_PER_PAGE} images`
+    }
   }
 }, { _id: false });
 
@@ -81,7 +93,11 @@ const photobookSchema = new Schema<IPhotobook>({
   },
   pages: {
     type: [pageSchema],
-    default: []
+    default: [],
+    validate: {
+      validator: (pages: IPage[]) => pages.length <= MAX_PAGES,
+      message: `A photobook cannot have more than ${MAX_PAGES} pages`
+    }
   },
   pageOrder: {
     type: [Number],
@@ -101,14 +117,23 @@ photobookSchema.methods.setImage = function(
   imageUrl: string,
   dropZoneIndex: number
 ): void {
+  if (pageNumber < 1 || pageNumber > MAX_PAGES) {
+    throw new Error(`pageNumber must be between 1 and ${MAX_PAGES}`);
+  }
+  if (dropZoneIndex < 0 || dropZoneIndex > MAX_DROP_ZONE_INDEX) {
+    throw new Error(`dropZoneIndex must be between 0 and ${MAX_DROP_ZONE_INDEX}`);
+  }
+
   let page = this.pages.find((p: IPage) => p.pageNumber === pageNumber);
 
   if (!page) {
-    page = { pageNumber, layout, images: [] };
-    this.pages.push(page);
+    this.pages.push({ pageNumber, layout, images: [] });
     if (!this.pageOrder.includes(pageNumber)) {
       this.pageOrder.push(pageNumber);
     }
+    // Re-fetch the subdocument: Mongoose casts the pushed object into a new
+    // subdocument instance, so the original reference is stale.
+    page = this.pages[this.pages.length - 1];
   }
 
   // Remove existing image in this dropzone
@@ -135,6 +160,10 @@ photobookSchema.methods.setPageOrder = function(newOrder: number[]): void {
 
 // Method to add a new page
 photobookSchema.methods.addPage = function(layout: LayoutType = 'horizontal-triplet'): number {
+  if (this.pages.length >= MAX_PAGES) {
+    throw new Error(`A photobook cannot have more than ${MAX_PAGES} pages`);
+  }
+
   const maxPageNumber = this.pages.reduce((max: number, p: IPage) => Math.max(max, p.pageNumber), 0);
   const newPageNumber = maxPageNumber + 1;
 

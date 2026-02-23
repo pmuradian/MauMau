@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { IPhotobook, IImagePlacement, IPage } from './models/Photobook';
+import { storageProvider } from './storage';
 
 export class PDFService {
     // A4 dimensions in points (72 points per inch)
@@ -142,6 +143,11 @@ export class PDFService {
         dropzone: { x: number, y: number, width: number, height: number }
     ): Promise<void> {
         try {
+            if (!storageProvider.isValidUrl(imagePlacement.imageUrl)) {
+                console.error(`Refused to fetch image from untrusted URL: ${imagePlacement.imageUrl}`);
+                return;
+            }
+
             const response = await fetch(imagePlacement.imageUrl);
             if (!response.ok) {
                 console.error(`Failed to fetch image from ${imagePlacement.imageUrl}: ${response.status}`);

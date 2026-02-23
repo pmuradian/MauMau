@@ -12,6 +12,7 @@ import { LayoutType, IPage, IImagePlacement } from './models/Photobook';
 import { PDFService } from './pdf-service';
 import authRoutes from './routes/auth';
 import { storageProvider } from './storage';
+import { MAX_PAGES, MAX_DROP_ZONE_INDEX } from './models/Photobook';
 
 dotenv.config();
 
@@ -33,6 +34,24 @@ app.use('/api/auth', authRoutes);
 app.get('/', (_, res) => {
     res.send('Photobook API is running');
 });
+
+// Helper: validate page number and dropzone index from user input
+function validatePageParams(
+    pageNumber: unknown,
+    dropZoneIndex?: unknown
+): string | null {
+    const page = Number(pageNumber);
+    if (!Number.isInteger(page) || page < 1 || page > MAX_PAGES) {
+        return `pageNumber must be an integer between 1 and ${MAX_PAGES}`;
+    }
+    if (dropZoneIndex !== undefined) {
+        const dz = Number(dropZoneIndex);
+        if (!Number.isInteger(dz) || dz < 0 || dz > MAX_DROP_ZONE_INDEX) {
+            return `dropZoneIndex must be an integer between 0 and ${MAX_DROP_ZONE_INDEX}`;
+        }
+    }
+    return null;
+}
 
 // Helper: map content-type to file extension
 function contentTypeToExtension(ct: string): string {
@@ -70,12 +89,13 @@ app.put(
     express.raw({ type: '*/*', limit: '50mb' }),
     async (req: AuthRequest, res: Response) => {
         try {
-            const { filename } = req.params;
-
-            // Reject path traversal attempts
-            if (filename.includes('..') || filename.includes('/')) {
+            // path.basename strips all directory components regardless of encoding,
+            // then the regex enforces strictly UUID + allowed image extension.
+            const safeName = path.basename(req.params.filename);
+            if (!/^[0-9a-f-]{36}\.(jpg|png|webp|gif|heic|heif)$/.test(safeName)) {
                 return res.status(400).json({ error: 'Invalid filename' });
             }
+            const filename = safeName;
 
             const uploadsDir = path.join(__dirname, 'uploads');
             await fs.mkdir(uploadsDir, { recursive: true });
@@ -100,8 +120,17 @@ app.post('/api/confirm-upload', authenticate, async (req: AuthRequest, res: Resp
             return res.status(400).json({ error: 'Missing required fields: key, imageUrl, or dropZoneIndex' });
         }
 
+        if (!storageProvider.isValidUrl(imageUrl)) {
+            return res.status(400).json({ error: 'Invalid imageUrl: must be a URL issued by this server' });
+        }
+
         const finalPageNumber = pageNumber ?? 1;
         const finalLayout: LayoutType = layout || 'horizontal-triplet';
+
+        const validationError = validatePageParams(finalPageNumber, dropZoneIndex);
+        if (validationError) {
+            return res.status(400).json({ error: validationError });
+        }
 
         const success = await PhotobookService.addImage(
             userId,
@@ -169,6 +198,11 @@ app.delete('/api/remove-image', authenticate, async (req: AuthRequest, res: Resp
 
         if (!photobookId || isNaN(dropZoneIndex)) {
             return res.status(400).json({ error: 'Missing required fields: key or dropZoneIndex' });
+        }
+
+        const validationError = validatePageParams(pageNumber, dropZoneIndex);
+        if (validationError) {
+            return res.status(400).json({ error: validationError });
         }
 
         // Retrieve the image URL before removing from DB
@@ -334,6 +368,11 @@ app.put('/api/page-layout', authenticate, async (req: AuthRequest, res: Response
 
         if (!photobookId || pageNumber === undefined || !layout) {
             return res.status(400).json({ error: 'Missing required fields: key, pageNumber, or layout' });
+        }
+
+        const validationError = validatePageParams(pageNumber);
+        if (validationError) {
+            return res.status(400).json({ error: validationError });
         }
 
         const success = await PhotobookService.updatePageLayout(userId, photobookId, pageNumber, layout);
