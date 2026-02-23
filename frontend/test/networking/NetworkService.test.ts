@@ -4,7 +4,9 @@ import {
   viewPhotobook,
   listPhotobooks,
   deletePhotobook,
-  uploadImage,
+  getUploadUrl,
+  putFileToBucket,
+  confirmUpload,
   removeImage,
   addPage,
   updatePageOrder,
@@ -87,8 +89,58 @@ describe('NetworkService', () => {
     });
   });
 
-  describe('uploadImage', () => {
-    it('should upload image successfully', async () => {
+  describe('getUploadUrl', () => {
+    it('should request an upload URL', async () => {
+      const mockResponse = { uploadUrl: 'http://localhost:3000/api/local-upload/abc.jpg', finalUrl: 'http://localhost:3000/uploads/abc.jpg' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockResponse)
+      });
+
+      const result = await getUploadUrl('image/jpeg');
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/upload-url?contentType=image%2Fjpeg', {
+        method: 'GET',
+        headers: expectedAuthHeaders,
+        credentials: 'include',
+      });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('putFileToBucket', () => {
+    it('should PUT binary to local upload URL with auth headers', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
+
+      const blob = new Blob(['image data'], { type: 'image/jpeg' });
+      await putFileToBucket('http://localhost:3000/api/local-upload/abc.jpg', blob, 'image/jpeg');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:3000/api/local-upload/abc.jpg',
+        expect.objectContaining({
+          method: 'PUT',
+          body: blob,
+          credentials: 'include',
+        })
+      );
+    });
+
+    it('should throw on failed upload', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve('Bad Request'),
+      });
+
+      const blob = new Blob(['data'], { type: 'image/jpeg' });
+      await expect(putFileToBucket('http://localhost:3000/api/local-upload/abc.jpg', blob, 'image/jpeg'))
+        .rejects.toThrow('File upload failed: 400 Bad Request');
+    });
+  });
+
+  describe('confirmUpload', () => {
+    it('should confirm upload with imageUrl', async () => {
       const mockResponse = { success: true, dropZoneIndex: 0 };
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -96,38 +148,31 @@ describe('NetworkService', () => {
         json: () => Promise.resolve(mockResponse)
       });
 
-      const imageData = 'data:image/jpeg;base64,test-data';
+      const result = await confirmUpload('test-key', 'http://localhost:3000/uploads/abc.jpg', 0, 1, 'horizontal-triplet');
 
-      const result = await uploadImage('test-key', imageData, 0, 1, 'horizontal-triplet');
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/upload?key=test-key',
-        {
-          method: 'POST',
-          headers: expectedAuthHeaders,
-          credentials: 'include',
-          body: JSON.stringify({
-            img: imageData,
-            dropZoneIndex: 0,
-            pageNumber: 1,
-            layout: 'horizontal-triplet'
-          })
-        }
-      );
-
+      expect(mockFetch).toHaveBeenCalledWith('/api/confirm-upload?key=test-key', {
+        method: 'POST',
+        headers: expectedAuthHeaders,
+        credentials: 'include',
+        body: JSON.stringify({
+          imageUrl: 'http://localhost:3000/uploads/abc.jpg',
+          dropZoneIndex: 0,
+          pageNumber: 1,
+          layout: 'horizontal-triplet',
+        })
+      });
       expect(result).toEqual(mockResponse);
     });
 
-    it('should handle upload failure', async () => {
+    it('should handle confirm-upload failure', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
         text: () => Promise.resolve('Bad Request')
       });
 
-      await expect(uploadImage('test-key', 'image-data', 0)).rejects.toThrow(
-        'Request failed: 400 Bad Request'
-      );
+      await expect(confirmUpload('test-key', 'http://localhost:3000/uploads/abc.jpg', 0))
+        .rejects.toThrow('Request failed: 400 Bad Request');
     });
   });
 

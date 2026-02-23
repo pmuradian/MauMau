@@ -1,5 +1,12 @@
 .DS_Store
 
+# Local image uploads (runtime storage)
+/backend/uploads/
+
+# Environment files
+.env
+backend/.env
+
 /backend/package-lock.json
 /backend/node_modules
 

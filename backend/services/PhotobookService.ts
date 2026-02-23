@@ -62,7 +62,7 @@ export class PhotobookService {
   static async addImage(
     userId: string,
     photobookId: string,
-    imageData: string,
+    imageUrl: string,
     dropZoneIndex: number,
     pageNumber: number,
     layout: LayoutType
@@ -75,7 +75,7 @@ export class PhotobookService {
     photobook.setImage(
       pageNumber,
       layout,
-      imageData,
+      imageUrl,
       dropZoneIndex
     );
 

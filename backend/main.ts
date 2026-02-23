@@ -2,12 +2,16 @@ import express, { Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 import connectDB from './config/database';
 import { authenticate, AuthRequest } from './middleware/auth';
 import { PhotobookService } from './services/PhotobookService';
-import { LayoutType } from './models/Photobook';
+import { LayoutType, IPage, IImagePlacement } from './models/Photobook';
 import { PDFService } from './pdf-service';
 import authRoutes from './routes/auth';
+import { storageProvider } from './storage';
 
 dotenv.config();
 
@@ -19,6 +23,9 @@ app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Serve locally uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Auth routes
 app.use('/api/auth', authRoutes);
 
@@ -27,14 +34,70 @@ app.get('/', (_, res) => {
     res.send('Photobook API is running');
 });
 
-app.post('/api/upload', authenticate, async (req: AuthRequest, res: Response) => {
+// Helper: map content-type to file extension
+function contentTypeToExtension(ct: string): string {
+    const map: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/jpg':  'jpg',
+        'image/png':  'png',
+        'image/webp': 'webp',
+        'image/gif':  'gif',
+        'image/heic': 'heic',
+        'image/heif': 'heif',
+    };
+    return map[ct.toLowerCase()] ?? 'jpg';
+}
+
+// Step 1: Request a presigned/local upload URL
+app.get('/api/upload-url', authenticate, async (req: AuthRequest, res: Response) => {
+    try {
+        const contentType = (req.query.contentType as string) || 'image/jpeg';
+        const ext = contentTypeToExtension(contentType);
+        const filename = `${uuidv4()}.${ext}`;
+
+        const result = await storageProvider.getUploadUrl(filename, contentType);
+        res.json({ uploadUrl: result.uploadUrl, finalUrl: result.finalUrl });
+    } catch (error) {
+        console.error('Error generating upload URL:', error);
+        res.status(500).json({ error: 'Failed to generate upload URL' });
+    }
+});
+
+// Step 2 (local dev): Receive raw binary and save to disk
+app.put(
+    '/api/local-upload/:filename',
+    authenticate,
+    express.raw({ type: '*/*', limit: '50mb' }),
+    async (req: AuthRequest, res: Response) => {
+        try {
+            const { filename } = req.params;
+
+            // Reject path traversal attempts
+            if (filename.includes('..') || filename.includes('/')) {
+                return res.status(400).json({ error: 'Invalid filename' });
+            }
+
+            const uploadsDir = path.join(__dirname, 'uploads');
+            await fs.mkdir(uploadsDir, { recursive: true });
+            await fs.writeFile(path.join(uploadsDir, filename), req.body);
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Error in local upload:', error);
+            res.status(500).json({ error: 'Upload failed' });
+        }
+    }
+);
+
+// Step 3: Confirm the upload and store the URL in MongoDB
+app.post('/api/confirm-upload', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
         const photobookId = req.query.key as string;
-        const { img, dropZoneIndex, pageNumber, layout } = req.body;
+        const { imageUrl, dropZoneIndex, pageNumber, layout } = req.body;
 
-        if (!photobookId || !img || dropZoneIndex === undefined) {
-            return res.status(400).json({ error: 'Missing required fields: key, img, or dropZoneIndex' });
+        if (!photobookId || !imageUrl || dropZoneIndex === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: key, imageUrl, or dropZoneIndex' });
         }
 
         const finalPageNumber = pageNumber ?? 1;
@@ -43,7 +106,7 @@ app.post('/api/upload', authenticate, async (req: AuthRequest, res: Response) =>
         const success = await PhotobookService.addImage(
             userId,
             photobookId,
-            img,
+            imageUrl,
             dropZoneIndex,
             finalPageNumber,
             finalLayout
@@ -53,11 +116,11 @@ app.post('/api/upload', authenticate, async (req: AuthRequest, res: Response) =>
             return res.status(404).json({ error: 'Photobook not found' });
         }
 
-        console.log(`Image uploaded to photobook ${photobookId} at dropzone ${dropZoneIndex}`);
+        console.log(`Image confirmed for photobook ${photobookId} at dropzone ${dropZoneIndex}`);
         res.json({ success: true, dropZoneIndex });
     } catch (error) {
-        console.error('Error in upload endpoint:', error);
-        res.status(500).json({ error: 'Internal server error during upload' });
+        console.error('Error in confirm-upload endpoint:', error);
+        res.status(500).json({ error: 'Internal server error during upload confirmation' });
     }
 });
 
@@ -108,10 +171,26 @@ app.delete('/api/remove-image', authenticate, async (req: AuthRequest, res: Resp
             return res.status(400).json({ error: 'Missing required fields: key or dropZoneIndex' });
         }
 
+        // Retrieve the image URL before removing from DB
+        const photobook = await PhotobookService.get(userId, photobookId);
+        if (!photobook) {
+            return res.status(404).json({ error: 'Photobook not found' });
+        }
+        const page = photobook.pages.find((p: IPage) => p.pageNumber === pageNumber);
+        const image = page?.images.find((img: IImagePlacement) => img.dropZoneIndex === dropZoneIndex);
+        const imageUrl = image?.imageUrl;
+
         const success = await PhotobookService.removeImage(userId, photobookId, pageNumber, dropZoneIndex);
 
         if (!success) {
             return res.status(404).json({ error: 'Image not found' });
+        }
+
+        // Delete file from storage after successful DB removal
+        if (imageUrl) {
+            storageProvider.deleteFile(imageUrl).catch((err) =>
+                console.error('Failed to delete image file from storage:', err)
+            );
         }
 
         console.log(`Image removed from photobook ${photobookId}, page ${pageNumber}, dropzone ${dropZoneIndex}`);
@@ -158,7 +237,7 @@ app.get('/api/photobooks', authenticate, async (req: AuthRequest, res: Response)
     }
 });
 
-// Delete a photobook
+// Delete a photobook and clean up its image files
 app.delete('/api/photobook', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!._id.toString();
@@ -168,11 +247,25 @@ app.delete('/api/photobook', authenticate, async (req: AuthRequest, res: Respons
             return res.status(400).json({ error: 'Missing photobook key' });
         }
 
+        // Collect all image URLs before deleting
+        const photobook = await PhotobookService.get(userId, photobookId);
+        const imageUrls: string[] = [];
+        if (photobook) {
+            for (const page of photobook.pages) {
+                for (const img of page.images) {
+                    if (img.imageUrl) imageUrls.push(img.imageUrl);
+                }
+            }
+        }
+
         const success = await PhotobookService.delete(userId, photobookId);
 
         if (!success) {
             return res.status(404).json({ error: 'Photobook not found' });
         }
+
+        // Delete all image files from storage
+        await Promise.allSettled(imageUrls.map((url) => storageProvider.deleteFile(url)));
 
         console.log(`Photobook ${photobookId} deleted`);
         res.json({ success: true });
@@ -285,7 +378,7 @@ app.get('/api/generate-pdf', authenticate, async (req: AuthRequest, res: Respons
 });
 
 // Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ message: 'Something went wrong!' });
 });
@@ -299,4 +392,3 @@ connectDB().then(() => {
     console.error('Failed to connect to MongoDB:', error);
     process.exit(1);
 });
-

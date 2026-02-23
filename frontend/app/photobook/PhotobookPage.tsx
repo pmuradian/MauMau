@@ -8,7 +8,7 @@ import {
   PortraitFullPage as FullPage,
 } from "UserInterface/PageLayouts/Portrait";
 import { File } from "UserInterface/Dropzone";
-import { uploadImage, removeImage } from "networking/NetworkService";
+import { getUploadUrl, putFileToBucket, confirmUpload, removeImage } from "networking/NetworkService";
 import { type LayoutType } from "UserInterface/LayoutSelector";
 
 export default function PhotobookPage({
@@ -26,27 +26,16 @@ export default function PhotobookPage({
   onImageRemovedLocal: (dropZoneIndex: number) => void;
   layout: LayoutType;
 }) {
-  const handleDrop = (file: File, _coords: any, dropZoneIndex: number) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file.data);
-    reader.onload = () => {
-      uploadImage(
-        photobookKey,
-        reader.result as string,
-        dropZoneIndex,
-        selectedPage,
-        layout
-      )
-        .then(() => {
-          onImageUpdated(dropZoneIndex, reader.result as string);
-        })
-        .catch((error) => {
-          console.error("Error uploading image:", error);
-        });
-    };
-    reader.onerror = (error) => {
-      console.log("Error: ", error);
-    };
+  const handleDrop = async (file: File, _coords: any, dropZoneIndex: number) => {
+    const contentType = file.data.type || 'image/jpeg';
+    try {
+      const { uploadUrl, finalUrl } = await getUploadUrl(contentType);
+      await putFileToBucket(uploadUrl, file.data, contentType);
+      await confirmUpload(photobookKey, finalUrl, dropZoneIndex, selectedPage, layout);
+      onImageUpdated(dropZoneIndex, finalUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
   };
 
   const handleRemove = (dropZoneIndex: number) => {

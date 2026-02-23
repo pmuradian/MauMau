@@ -9,7 +9,7 @@ export type LayoutType =
   | 'single-page';
 
 export interface IImagePlacement {
-  imageData: string;
+  imageUrl: string;
   dropZoneIndex: number;
 }
 
@@ -27,14 +27,14 @@ export interface IPhotobook extends mongoose.Document {
   pageOrder: number[];
   createdAt: Date;
   updatedAt: Date;
-  setImage(pageNumber: number, layout: LayoutType, imageData: string, dropZoneIndex: number): void;
+  setImage(pageNumber: number, layout: LayoutType, imageUrl: string, dropZoneIndex: number): void;
   removeImage(pageNumber: number, dropZoneIndex: number): boolean;
   setPageOrder(newOrder: number[]): void;
   addPage(layout?: LayoutType): number;
 }
 
 const imagePlacementSchema = new Schema<IImagePlacement>({
-  imageData: {
+  imageUrl: {
     type: String,
     required: true
   },
@@ -98,7 +98,7 @@ photobookSchema.index({ userId: 1, createdAt: -1 });
 photobookSchema.methods.setImage = function(
   pageNumber: number,
   layout: LayoutType,
-  imageData: string,
+  imageUrl: string,
   dropZoneIndex: number
 ): void {
   let page = this.pages.find((p: IPage) => p.pageNumber === pageNumber);
@@ -115,7 +115,7 @@ photobookSchema.methods.setImage = function(
   page.images = page.images.filter((img: IImagePlacement) => img.dropZoneIndex !== dropZoneIndex);
 
   // Add new image
-  page.images.push({ imageData, dropZoneIndex });
+  page.images.push({ imageUrl, dropZoneIndex });
 };
 
 // Method to remove an image from a page

@@ -17,46 +17,42 @@ export class PDFService {
     }
     
     static async generatePhotobookPDF(photobook: IPhotobook): Promise<Buffer> {
-        return new Promise((resolve, reject) => {
-            try {
-                console.log('Generating PDF for photobook:', photobook.title);
-                console.log('Number of pages:', photobook.pages.length);
-                
-                const doc = new PDFDocument({
-                    size: 'A4',
-                    margin: 0
-                });
-                
-                const chunks: Buffer[] = [];
-                doc.on('data', chunk => chunks.push(chunk));
-                doc.on('end', () => resolve(Buffer.concat(chunks)));
-                doc.on('error', reject);
-                
-                // If no pages, create a blank page
-                if (photobook.pages.length === 0) {
-                    console.log('No pages found, creating blank page');
-                    doc.text('No images uploaded yet', 50, 50);
-                } else {
-                    // Process each page
-                    photobook.pages.forEach((page: IPage, pageIndex: number) => {
-                        console.log(`Processing page ${pageIndex}, images:`, page.images.length);
-                        if (pageIndex > 0) {
-                            doc.addPage();
-                        }
+        console.log('Generating PDF for photobook:', photobook.title);
+        console.log('Number of pages:', photobook.pages.length);
 
-                        this.renderPage(doc, page);
-                    });
-                }
-                
-                doc.end();
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                reject(error);
-            }
+        const doc = new PDFDocument({ size: 'A4', margin: 0 });
+
+        const chunks: Buffer[] = [];
+        const streamDone = new Promise<Buffer>((resolve, reject) => {
+            doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+            doc.on('end', () => resolve(Buffer.concat(chunks)));
+            doc.on('error', reject);
         });
+
+        try {
+            if (photobook.pages.length === 0) {
+                console.log('No pages found, creating blank page');
+                doc.text('No images uploaded yet', 50, 50);
+            } else {
+                for (const [pageIndex, page] of photobook.pages.entries()) {
+                    console.log(`Processing page ${pageIndex}, images:`, page.images.length);
+                    if (pageIndex > 0) {
+                        doc.addPage();
+                    }
+                    await this.renderPage(doc, page);
+                }
+            }
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            doc.end();
+            throw error;
+        }
+
+        doc.end();
+        return streamDone;
     }
     
-    private static renderPage(doc: PDFKit.PDFDocument, page: IPage) {
+    private static async renderPage(doc: PDFKit.PDFDocument, page: IPage): Promise<void> {
         // Account for all frontend padding layers:
         // 1. A4Portrait has p-4 (16px padding on all sides)
         // 2. HorizontalTriplet has paddingTop: '12%'
@@ -122,42 +118,43 @@ export class PDFService {
         ];
         
         // Debug: Draw dropzone boundaries (optional - remove in production)
-        dropzones.forEach((zone, index) => {
+        dropzones.forEach((zone) => {
             doc.rect(zone.x, zone.y, zone.width, zone.height)
                .stroke('#cccccc');
         });
         
         // Place images in their respective dropzones
         console.log(`Rendering page with ${page.images.length} images`);
-        page.images.forEach((imagePlacement: IImagePlacement, index: number) => {
+        for (const [index, imagePlacement] of page.images.entries()) {
             console.log(`Placing image ${index} in dropzone ${imagePlacement.dropZoneIndex}`);
             const dropzone = dropzones[imagePlacement.dropZoneIndex];
             if (dropzone) {
-                this.placeImageInDropzone(doc, imagePlacement, dropzone);
+                await this.placeImageInDropzone(doc, imagePlacement, dropzone);
             } else {
                 console.log(`No dropzone found for index ${imagePlacement.dropZoneIndex}`);
             }
-        });
+        }
     }
 
-    private static placeImageInDropzone(
+    private static async placeImageInDropzone(
         doc: PDFKit.PDFDocument,
         imagePlacement: IImagePlacement,
         dropzone: { x: number, y: number, width: number, height: number }
-    ) {
+    ): Promise<void> {
         try {
-            // Convert base64 to buffer
-            const base64Data = imagePlacement.imageData.replace(/^data:image\/[a-z]+;base64,/, '');
-            const imageBuffer = Buffer.from(base64Data, 'base64');
+            const response = await fetch(imagePlacement.imageUrl);
+            if (!response.ok) {
+                console.error(`Failed to fetch image from ${imagePlacement.imageUrl}: ${response.status}`);
+                return;
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const imageBuffer = Buffer.from(arrayBuffer);
 
-            // Fit image to fill the dropzone (cover mode)
-            // PDFKit will handle the image placement
             doc.image(imageBuffer, dropzone.x, dropzone.y, {
                 fit: [dropzone.width, dropzone.height],
                 align: 'center',
                 valign: 'center'
             });
-
         } catch (error) {
             console.error('Error placing image in PDF:', error);
         }

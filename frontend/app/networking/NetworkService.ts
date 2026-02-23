@@ -123,22 +123,41 @@ export function deletePhotobook(photobookId: string): Promise<{ success: boolean
     );
 }
 
-export function uploadImage(
+export function getUploadUrl(
+    contentType: string
+): Promise<{ uploadUrl: string; finalUrl: string }> {
+    const url = `${MauMauURL}/upload-url?contentType=${encodeURIComponent(contentType)}`;
+    const options: RequestInit = { method: "GET" };
+    return authFetch(url, options).then((response) =>
+        handleResponse(response, () => authFetch(url, options))
+    );
+}
+
+export async function putFileToBucket(uploadUrl: string, file: Blob, contentType: string): Promise<void> {
+    const isLocal = uploadUrl.startsWith('http://localhost') || uploadUrl.startsWith('http://127.0.0.1');
+    const fetchFn = isLocal ? authFetch : fetch;
+    const response = await fetchFn(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType },
+        body: file,
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`File upload failed: ${response.status} ${errorText}`);
+    }
+}
+
+export function confirmUpload(
     photobookId: string,
-    image: string,
+    imageUrl: string,
     dropZoneIndex: number,
     pageNumber: number = 1,
     layout: string = 'horizontal-triplet'
 ): Promise<{ success: boolean; dropZoneIndex: number }> {
-    const url = MauMauURL + "/upload?key=" + photobookId;
+    const url = `${MauMauURL}/confirm-upload?key=${photobookId}`;
     const options: RequestInit = {
         method: "POST",
-        body: JSON.stringify({
-            img: image,
-            dropZoneIndex,
-            pageNumber,
-            layout,
-        }),
+        body: JSON.stringify({ imageUrl, dropZoneIndex, pageNumber, layout }),
     };
     return authFetch(url, options).then((response) =>
         handleResponse(response, () => authFetch(url, options))
