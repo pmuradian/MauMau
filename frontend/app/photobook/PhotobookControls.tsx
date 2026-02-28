@@ -7,7 +7,6 @@ export default function PhotobookControls({ title, photobookKey }: { title: stri
     <div className="photobook-controls">
       <PrimaryButton
         onClick={async () => {
-          console.log("Print button clicked");
           try {
             const pdfBlob = await generatePDF(photobookKey);
 
@@ -20,8 +19,6 @@ export default function PhotobookControls({ title, photobookKey }: { title: stri
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-
-            console.log("PDF generated and download started");
           } catch (error) {
             console.error("Error generating PDF:", error);
             alert("Failed to generate PDF. Please try again.");

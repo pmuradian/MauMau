@@ -13,11 +13,9 @@ export function PortraitHorizontalTriplet({
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                         const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                         onImageDropped?.(file, merged, 0);
-                        console.log("Image dropped in top-left:", file, merged);
                     }}
                     onImageRemoved={() => {
                         onImageRemoved?.(0);
-                        console.log("Image removed from top-left");
                     }}
                     initialImage={initialImages[0]}
                 />
@@ -25,11 +23,9 @@ export function PortraitHorizontalTriplet({
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                         const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                         onImageDropped?.(file, merged, 1);
-                        console.log("Image dropped in top-right:", file, merged);
                     }}
                     onImageRemoved={() => {
                         onImageRemoved?.(1);
-                        console.log("Image removed from top-right");
                     }}
                     initialImage={initialImages[1]}
                 />
@@ -39,11 +35,9 @@ export function PortraitHorizontalTriplet({
                 onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                     const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                     onImageDropped?.(file, merged, 2);
-                    console.log("Image dropped in bottom:", file, merged);
                 }}
                 onImageRemoved={() => {
                     onImageRemoved?.(2);
-                    console.log("Image removed from bottom");
                 }}
                 initialImage={initialImages[2]}
             />

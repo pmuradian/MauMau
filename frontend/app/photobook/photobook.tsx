@@ -67,7 +67,6 @@ export default function Photobook() {
     if (photobookKey) {
       viewPhotobook(photobookKey)
         .then((response) => {
-          console.log("Photobook details:", response);
           setData(
             new PhotobookData(
               response.title || "Untitled Photobook",
@@ -89,7 +88,6 @@ export default function Photobook() {
           console.error("Error fetching photobook:", error);
         });
     } else {
-      console.log("No photobook key found.");
       setData({} as PhotobookData);
     }
   }, [photobookKey]);
@@ -99,7 +97,6 @@ export default function Photobook() {
       try {
         await updatePhotobookTitle(photobookKey, editedTitle.trim());
         setData((prev) => ({ ...prev, title: editedTitle.trim() }));
-        console.log("Title updated successfully");
       } catch (error) {
         console.error("Error updating title:", error);
         alert("Failed to update title. Please try again.");
