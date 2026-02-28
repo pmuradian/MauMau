@@ -221,18 +221,27 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 
 ### Styling Architecture
 
-**Tailwind CSS 4.1.4** with custom CSS for specific components:
+**Tailwind CSS 4.1.4** with custom CSS for specific components.
 
-- Global styles: `app/app.css`
-- Photobook-specific: `app/photobook/photobook.css`
+**Design tokens** are defined in `app/app.css` using Tailwind's `@theme` block (colors) and `:root` (radius, shadows):
+- Colors: `--color-primary`, `--color-primary-hover`, `--color-primary-subtle`, `--color-text`, `--color-text-muted`, `--color-text-subtle`, `--color-surface`, `--color-background`, `--color-border`, `--color-danger*`, `--color-error*`
+- Radius: `--radius-sm` (4px), `--radius-md` (8px), `--radius-lg` (12px)
+- Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
+
+**CSS co-location convention** — each CSS file lives next to the component it styles:
+- Global tokens: `app/app.css`
+- Photobook editor: `app/photobook/photobook.css`
+- Layout selector modal: `app/photobook/LayoutSelector.css`
 - Auth pages: `app/routes/auth/auth.css`
 - Dashboard: `app/routes/home.css`
-- Layout/dropzone/paper styles: `app/uicomponents/Styles/`
+- Buttons: `app/uicomponents/Buttons.css`
+- Dropzone: `app/uicomponents/Styles/dropzone.css`
+- Paper/A4 page: `app/uicomponents/Styles/paper.css`
 
 **A4 Page Format:**
 - `.a4-page` class provides consistent A4 aspect ratio (1:1.414)
 - `.main-page` modifier applies 80vh height on main view
-- All page components use unified styling from `photobook.css`
+- All page components use unified styling from `paper.css`
 
 ### Testing
 
