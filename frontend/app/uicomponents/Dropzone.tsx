@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react'
 import './Styles/paper.css';
 import './Styles/dropzone.css';
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, type FileRejection, type DropEvent } from 'react-dropzone'
 
 
 
@@ -68,14 +68,14 @@ export function Dropzone(
             setFile(null);
         }
     }, [initialImage]);
-    const onDrop = useCallback((acceptedFiles: (Blob)[], event?: any) => {
+    const onDrop = useCallback((acceptedFiles: Blob[], _fileRejections: FileRejection[], event: DropEvent) => {
         const file = acceptedFiles[acceptedFiles.length - 1];
         const image = new File(URL.createObjectURL(file), file, URL.createObjectURL(file));
         setFile(image);
 
         // Get drop coordinates
         let coords = { x: 0, y: 0 };
-        if (event && event.type === 'drop' && event.clientX !== undefined && event.clientY !== undefined) {
+        if ('clientX' in event && event.type === 'drop') {
             coords = { x: event.clientX, y: event.clientY };
         }
 

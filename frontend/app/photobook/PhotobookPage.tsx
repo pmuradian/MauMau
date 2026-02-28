@@ -1,4 +1,3 @@
-import React from "react";
 import { A4Portrait } from "./Pages";
 import {
   PortraitHorizontalTriplet as HorizontalTriplet,
@@ -8,6 +7,7 @@ import {
   PortraitFullPage as FullPage,
 } from "./PageLayouts/Portrait";
 import { File } from "uicomponents/Dropzone";
+import { type DropCoords } from "./PageLayouts/Portrait/types";
 import { getUploadUrl, putFileToBucket, confirmUpload, removeImage } from "networking/NetworkService";
 import { type LayoutType } from "./LayoutSelector";
 
@@ -26,7 +26,7 @@ export default function PhotobookPage({
   onImageRemovedLocal: (dropZoneIndex: number) => void;
   layout: LayoutType;
 }) {
-  const handleDrop = async (file: File, _coords: any, dropZoneIndex: number) => {
+  const handleDrop = async (file: File, _coords: DropCoords, dropZoneIndex: number) => {
     const contentType = file.data.type || 'image/jpeg';
     try {
       const { uploadUrl, finalUrl } = await getUploadUrl(contentType);

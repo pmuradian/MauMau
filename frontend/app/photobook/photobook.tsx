@@ -11,7 +11,7 @@ import "./photobook.css";
 
 export default function Photobook() {
   const [searchParams] = useSearchParams();
-  const [data, setData] = useState({} as PhotobookData);
+  const [data, setData] = useState<PhotobookData | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
@@ -78,7 +78,7 @@ export default function Photobook() {
           // Optionally populate layouts from response.pages if available
           if (response.pages) {
             const layouts: { [pageNumber: number]: LayoutType } = {};
-            response.pages.forEach((p: any) => {
+            response.pages.forEach((p: { pageNumber: number; layout?: string }) => {
               if (p?.layout) layouts[p.pageNumber] = p.layout as LayoutType;
             });
             setPageLayouts((prev) => ({ ...prev, ...layouts }));
@@ -88,7 +88,7 @@ export default function Photobook() {
           console.error("Error fetching photobook:", error);
         });
     } else {
-      setData({} as PhotobookData);
+      setData(null);
     }
   }, [photobookKey]);
 
@@ -96,7 +96,7 @@ export default function Photobook() {
     if (editedTitle.trim() && editedTitle !== data.title) {
       try {
         await updatePhotobookTitle(photobookKey, editedTitle.trim());
-        setData((prev) => ({ ...prev, title: editedTitle.trim() }));
+        setData((prev) => prev ? { ...prev, title: editedTitle.trim() } : prev);
       } catch (error) {
         console.error("Error updating title:", error);
         alert("Failed to update title. Please try again.");
@@ -140,21 +140,16 @@ export default function Photobook() {
           }}
           onImageRemovedLocal={(dropZoneIndex) => {
             setPageData((prev) => {
-              const newPageData = { ...prev } as any;
-              if (newPageData[selectedPage]) {
-                const newImages = { ...newPageData[selectedPage].images };
-                delete newImages[dropZoneIndex];
-                newPageData[selectedPage] = {
-                  ...newPageData[selectedPage],
-                  images: newImages,
-                };
-              }
-              return newPageData;
+              const current = prev[selectedPage];
+              if (!current) return prev;
+              const newImages = { ...current.images };
+              delete newImages[dropZoneIndex];
+              return { ...prev, [selectedPage]: { ...current, images: newImages } as PageData };
             });
           }}
         />
 
-        <PhotobookControls title={data.title} photobookKey={photobookKey} />
+        <PhotobookControls title={data?.title ?? ''} photobookKey={photobookKey} />
       </div>
 
       <LayoutSelector
