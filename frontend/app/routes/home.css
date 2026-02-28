@@ -15,14 +15,14 @@
 .dashboard-title {
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: var(--color-text);
 }
 
 .dashboard-create-btn {
-  background-color: #77A0A0;
-  color: #333;
+  background-color: var(--color-primary);
+  color: var(--color-text);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px 24px;
   font-size: 15px;
   font-weight: 500;
@@ -31,7 +31,7 @@
 }
 
 .dashboard-create-btn:hover:not(:disabled) {
-  background-color: #6a9090;
+  background-color: var(--color-primary-hover);
 }
 
 .dashboard-create-btn:disabled {
@@ -49,12 +49,12 @@
 .dashboard-empty {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 16px;
 }
 
 .dashboard-error {
-  color: #c33;
+  color: var(--color-error);
 }
 
 .photobook-grid {
@@ -64,9 +64,9 @@
 }
 
 .photobook-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -75,13 +75,13 @@
 }
 
 .photobook-card:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
 }
 
 .photobook-card-title {
   font-size: 17px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -89,7 +89,7 @@
 
 .photobook-card-meta {
   font-size: 13px;
-  color: #888;
+  color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -103,10 +103,10 @@
 
 .card-btn-open {
   flex: 1;
-  background-color: #77A0A0;
-  color: #333;
+  background-color: var(--color-primary);
+  color: var(--color-text);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 500;
@@ -115,14 +115,14 @@
 }
 
 .card-btn-open:hover {
-  background-color: #6a9090;
+  background-color: var(--color-primary-hover);
 }
 
 .card-btn-delete {
-  background-color: #f5e8e4;
-  color: #a05040;
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 500;
@@ -131,5 +131,5 @@
 }
 
 .card-btn-delete:hover {
-  background-color: #ebd4ce;
+  background-color: var(--color-danger-hover);
 }

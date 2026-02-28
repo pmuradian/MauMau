@@ -3,6 +3,41 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Brand */
+  --color-primary:        #77A0A0;
+  --color-primary-hover:  #6a9090;
+  --color-primary-subtle: #eef4f4;
+
+  /* Text */
+  --color-text:        #333333;
+  --color-text-muted:  #666666;
+  --color-text-subtle: #999999;
+
+  /* Surfaces & borders */
+  --color-surface:    #ffffff;
+  --color-background: #f5f7fa;
+  --color-border:     #dee2e6;
+
+  /* Danger (destructive actions) */
+  --color-danger:       #a05040;
+  --color-danger-bg:    #f5e8e4;
+  --color-danger-hover: #ebd4ce;
+
+  /* Error (form validation, alerts) */
+  --color-error:        #cc3333;
+  --color-error-bg:     #ffeeee;
+  --color-error-border: #ffcccc;
+}
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 html,
@@ -12,5 +47,4 @@ body {
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
-  
 }
