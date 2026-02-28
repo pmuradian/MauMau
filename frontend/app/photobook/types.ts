@@ -1,4 +1,4 @@
-import { type LayoutType } from "UserInterface/LayoutSelector";
+import { type LayoutType } from "./LayoutSelector";
 
 export class PageData {
     constructor(

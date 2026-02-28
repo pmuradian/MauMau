@@ -1,73 +1,63 @@
-import { Dropzone, File, PreviewDropzone } from "../../Dropzone";
+import { Dropzone, File, PreviewDropzone } from "uicomponents/Dropzone";
 import type { LayoutProps, PreviewLayoutProps } from "./types";
 
-export function PortraitHorizontalTriplet({
+export function PortraitVerticalTriplet({
     onImageDropped,
     onImageRemoved,
     initialImages = {}
 }: LayoutProps) {
     return (
-        <div className='column' style={{ width: '100%', display: 'flex', flex: '1' }}>
-            <div className='row' style={{ width: '100%', display: 'flex', flex: '1' }}>
+        <div className='row' style={{ width: '100%', display: 'flex', flex: '1', gap: '8px' }}>
+            <div className='column' style={{ width: '40%', display: 'flex', flexShrink: 0 }}>
                 <Dropzone
+                    aspectRatio='0.8'
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                         const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                         onImageDropped?.(file, merged, 0);
-                        console.log("Image dropped in top-left:", file, merged);
                     }}
-                    onImageRemoved={() => {
-                        onImageRemoved?.(0);
-                        console.log("Image removed from top-left");
-                    }}
+                    onImageRemoved={() => onImageRemoved?.(0)}
                     initialImage={initialImages[0]}
                 />
                 <Dropzone
+                    aspectRatio='0.8'
                     onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                         const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                         onImageDropped?.(file, merged, 1);
-                        console.log("Image dropped in top-right:", file, merged);
                     }}
-                    onImageRemoved={() => {
-                        onImageRemoved?.(1);
-                        console.log("Image removed from top-right");
-                    }}
+                    onImageRemoved={() => onImageRemoved?.(1)}
                     initialImage={initialImages[1]}
                 />
             </div>
             <Dropzone
-                aspectRatio='1.5'
+                aspectRatio='0.562'
                 onImageDropped={(file: File, coords?: { x: number, y: number }, dimensions?: { width: number, height: number }) => {
                     const merged = { x: coords?.x ?? 0, y: coords?.y ?? 0, width: dimensions?.width ?? 0, height: dimensions?.height ?? 0 };
                     onImageDropped?.(file, merged, 2);
-                    console.log("Image dropped in bottom:", file, merged);
                 }}
-                onImageRemoved={() => {
-                    onImageRemoved?.(2);
-                    console.log("Image removed from bottom");
-                }}
+                onImageRemoved={() => onImageRemoved?.(2)}
                 initialImage={initialImages[2]}
             />
         </div>
     );
 }
 
-export function PortraitPreviewHorizontalTriplet({
+export function PortraitPreviewVerticalTriplet({
     initialImages = {}
 }: PreviewLayoutProps) {
     return (
-        <div className='column' style={{ paddingLeft: '10%', paddingRight: '5%', width: '100%', display: 'flex', flex: '1' }}>
-            <div className='row' style={{ width: '100%', display: 'flex', flex: '1' }}>
+        <div className='row' style={{paddingLeft: '10%', paddingRight: '5%', width: '100%', display: 'flex', flex: '1', gap: '8px' }}>
+            <div className='column' style={{ width: '40%', display: 'flex', flexShrink: 0 }}>
                 <PreviewDropzone
-                    aspectRatio="1"
+                    aspectRatio="0.9"
                     initialImage={initialImages[0]}
                 />
                 <PreviewDropzone
-                    aspectRatio="1"
+                    aspectRatio="0.9"
                     initialImage={initialImages[1]}
                 />
             </div>
             <PreviewDropzone
-                aspectRatio='1.5'
+                aspectRatio='0.589'
                 initialImage={initialImages[2]}
             />
         </div>

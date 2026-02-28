@@ -1,5 +1,5 @@
 import React from "react";
-import { PrimaryButton } from "../UserInterface/Buttons";
+import { PrimaryButton } from "../uicomponents/Buttons";
 import { generatePDF } from "networking/NetworkService";
 
 export default function PhotobookControls({ title, photobookKey }: { title: string; photobookKey: string }) {

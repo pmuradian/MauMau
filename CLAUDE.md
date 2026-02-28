@@ -91,7 +91,7 @@ Images are positioned using **dropZone indices** rather than arbitrary coordinat
 
 ### Layout System
 
-Five layout components under `app/UserInterface/PageLayouts/`:
+Five layout components under `app/photobook/PageLayouts/`:
 
 1. **HorizontalTriplet** - 2 images top, 1 wide bottom (3 dropZones)
 2. **VerticalTriplet** - 2 images left, 1 large right (3 dropZones)
@@ -125,8 +125,8 @@ Auth constants (access token expiry, refresh token TTL, cookie name) are central
 React Router 7 with file-based routes (app/routes.ts):
 
 - Index route → `routes/home.tsx` (user dashboard — list, open, delete, create photobooks)
-- `/login` → `routes/login.tsx`
-- `/register` → `routes/register.tsx`
+- `/login` → `routes/auth/login.tsx`
+- `/register` → `routes/auth/register.tsx`
 - `/photobook` → `photobook/photobook.tsx`
 
 Routes are SSR-capable but currently run client-side only.
@@ -225,9 +225,9 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 
 - Global styles: `app/app.css`
 - Photobook-specific: `app/photobook/photobook.css`
-- Auth pages: `app/routes/auth.css`
+- Auth pages: `app/routes/auth/auth.css`
 - Dashboard: `app/routes/home.css`
-- Layout selector: `app/UserInterface/Styles/layout-selector.css`
+- Layout/dropzone/paper styles: `app/uicomponents/Styles/`
 
 **A4 Page Format:**
 - `.a4-page` class provides consistent A4 aspect ratio (1:1.414)
@@ -239,7 +239,7 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 **Frontend** — Vitest with React Testing Library (`frontend/vitest.config.ts`):
 - Environment: jsdom
 - Setup file: `test/setup.ts`
-- Path aliases configured: `networking`, `UserInterface`
+- Path aliases configured: `networking`, `uicomponents`
 - Tests located in `test/` directory mirroring `app/` structure
 - Import using aliases: `import { createPhotobook } from 'networking/NetworkService'`
 - Mock fetch for API calls; use `@testing-library/react` for component tests
@@ -254,8 +254,8 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 
 ### Adding a New Layout
 
-1. Create layout component in `app/UserInterface/PageLayouts/`
-2. Add layout type to `LayoutType` in `app/UserInterface/LayoutSelector.tsx`
+1. Create layout component in `app/photobook/PageLayouts/`
+2. Add layout type to `LayoutType` in `app/photobook/LayoutSelector.tsx`
 3. Update layout selector modal to include new option
 4. Ensure component accepts `onImageDropped`, `onImageRemoved`, `initialImages` props
 

@@ -13,7 +13,7 @@ export default defineConfig({
   resolve: {
     alias: {
       'networking': resolve(__dirname, './app/networking'),
-      'UserInterface': resolve(__dirname, './app/UserInterface'),
+      'uicomponents': resolve(__dirname, './app/uicomponents'),
     },
   },
 });

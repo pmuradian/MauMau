@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { PortraitHorizontalTriplet } from '../../app/UserInterface/PageLayouts/Portrait';
+import { PortraitHorizontalTriplet } from '../../app/photobook/PageLayouts/Portrait';
 
 describe('PortraitHorizontalTriplet Layout', () => {
   const mockOnImageDropped = vi.fn();

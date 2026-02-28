@@ -1,15 +1,15 @@
 import React from "react";
-import { A4Portrait } from "UserInterface/Pages";
+import { A4Portrait } from "./Pages";
 import {
   PortraitHorizontalTriplet as HorizontalTriplet,
   PortraitVerticalTriplet as VerticalTriplet,
   PortraitVerticalTuple as VerticalTuple,
   PortraitSinglePage as SinglePage,
   PortraitFullPage as FullPage,
-} from "UserInterface/PageLayouts/Portrait";
-import { File } from "UserInterface/Dropzone";
+} from "./PageLayouts/Portrait";
+import { File } from "uicomponents/Dropzone";
 import { getUploadUrl, putFileToBucket, confirmUpload, removeImage } from "networking/NetworkService";
-import { type LayoutType } from "UserInterface/LayoutSelector";
+import { type LayoutType } from "./LayoutSelector";
 
 export default function PhotobookPage({
   photobookKey,

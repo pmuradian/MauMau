@@ -13,15 +13,15 @@ import {
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { PrimaryButton } from "../UserInterface/Buttons";
-import { type LayoutType } from "UserInterface/LayoutSelector";
+import { PrimaryButton } from "../uicomponents/Buttons";
+import { type LayoutType } from "./LayoutSelector";
 import {
     PortraitPreviewFullPage,
     PortraitPreviewHorizontalTriplet,
     PortraitPreviewSinglePage,
     PortraitPreviewVerticalTuple,
     PortraitPreviewVerticalTriplet
- } from "UserInterface/PageLayouts/Portrait";
+ } from "./PageLayouts/Portrait";
 import SortablePageItem from "./SortablePageItem";
 
 interface SideContentProps {

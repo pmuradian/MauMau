@@ -2,7 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { viewPhotobook, updatePhotobookTitle } from "networking/NetworkService";
-import { LayoutSelector, type LayoutType } from "UserInterface/LayoutSelector";
+import { LayoutSelector, type LayoutType } from "./LayoutSelector";
 import SideContent from "./SideContent";
 import PhotobookPage from "./PhotobookPage";
 import PhotobookControls from "./PhotobookControls";

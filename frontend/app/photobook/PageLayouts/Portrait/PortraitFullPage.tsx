@@ -1,4 +1,4 @@
-import { Dropzone, File, PreviewDropzone } from "../../Dropzone";
+import { Dropzone, File, PreviewDropzone } from "uicomponents/Dropzone";
 import type { LayoutProps, PreviewLayoutProps } from "./types";
 
 export function PortraitFullPage({

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { Dropzone, File } from '../../app/UserInterface/Dropzone';
+import { Dropzone, File } from '../../app/uicomponents/Dropzone';
 
 describe('Dropzone Component', () => {
   const mockOnImageDropped = vi.fn();
