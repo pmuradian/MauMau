@@ -1,0 +1,17 @@
+.mau-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.mau-btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.mau-btn--secondary {
+    background-color: #A68B77;
+    color: #555555;
+}

@@ -1,0 +1,120 @@
+.ls-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.ls-modal {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    min-width: 700px;
+    width: 60vw;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-background);
+}
+
+.ls-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.ls-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    color: var(--color-text-muted);
+}
+
+.ls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.ls-option {
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    cursor: pointer;
+    background: var(--color-surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ls-option--selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-subtle);
+}
+
+.ls-preview {
+    width: 100%;
+    aspect-ratio: 0.7071;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ls-name {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.ls-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-background);
+}
+
+.ls-cancel-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.ls-confirm-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-primary);
+    color: white;
+    cursor: pointer;
+}
+
+.ls-confirm-btn:hover {
+    background: var(--color-primary-hover);
+}

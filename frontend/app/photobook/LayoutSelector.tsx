@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
+import './LayoutSelector.css';
 import {
     PortraitPreviewHorizontalTriplet,
     PortraitPreviewVerticalTriplet,
@@ -17,111 +18,6 @@ const layoutOptions: { id: LayoutType; name: string; preview: React.ComponentTyp
     { id: 'full-page', name: 'Full Page', preview: PortraitPreviewFullPage }
 ];
 
-const styles: { [key: string]: CSSProperties } = {
-    overlay: {
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-    },
-    modal: {
-        background: 'white',
-        borderRadius: 12,
-        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-        minWidth: 700,
-        width: '60vw',
-        maxHeight: '80vh',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column'
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 20px',
-        borderBottom: '1px solid #e0e0e0',
-        background: '#161819'
-    },
-    title: {
-        margin: 0,
-        fontSize: 18,
-        fontWeight: 600
-    },
-    closeBtn: {
-        background: 'none',
-        border: 'none',
-        fontSize: 24,
-        cursor: 'pointer',
-        padding: 0,
-        color: '#666'
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 12,
-        padding: 20,
-        overflowY: 'auto'
-    },
-    option: {
-        border: '2px solid #e0e0e0',
-        borderRadius: 8,
-        padding: 10,
-        cursor: 'pointer',
-        background: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-    },
-    optionSelected: {
-        borderColor: '#007acc',
-        background: '#f0f8ff'
-    },
-    preview: {
-        width: '100%',
-        aspectRatio: '0.7071',
-        background: 'white',
-        border: '1px solid #ddd',
-        borderRadius: 4,
-        overflow: 'hidden',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    name: {
-        marginTop: 8,
-        fontSize: 12,
-        fontWeight: 500,
-        color: '#333'
-    },
-    footer: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: 12,
-        padding: '16px 20px',
-        borderTop: '1px solid #e0e0e0',
-        background: '#f8f9fa'
-    },
-    cancelBtn: {
-        padding: '8px 16px',
-        borderRadius: 6,
-        border: 'none',
-        background: '#e9ecef',
-        cursor: 'pointer'
-    },
-    confirmBtn: {
-        padding: '8px 16px',
-        borderRadius: 6,
-        border: 'none',
-        background: '#007acc',
-        color: 'white',
-        cursor: 'pointer'
-    }
-};
-
 interface LayoutSelectorProps {
     isOpen: boolean;
     onClose: () => void;
@@ -134,31 +30,31 @@ export function LayoutSelector({ isOpen, onClose, onSelectLayout }: LayoutSelect
     if (!isOpen) return null;
 
     return (
-        <div style={styles.overlay} onClick={onClose}>
-            <div style={styles.modal} onClick={e => e.stopPropagation()}>
-                <div style={styles.header}>
-                    <h2 style={styles.title}>Choose Page Layout</h2>
-                    <button style={styles.closeBtn} onClick={onClose}>×</button>
+        <div className="ls-overlay" onClick={onClose}>
+            <div className="ls-modal" onClick={e => e.stopPropagation()}>
+                <div className="ls-header">
+                    <h2 className="ls-title">Choose Page Layout</h2>
+                    <button className="ls-close-btn" onClick={onClose}>×</button>
                 </div>
 
-                <div style={styles.grid}>
+                <div className="ls-grid">
                     {layoutOptions.map(({ id, name, preview: Preview }) => (
                         <div
                             key={id}
-                            style={{ ...styles.option, ...(selectedLayout === id ? styles.optionSelected : {}) }}
+                            className={`ls-option${selectedLayout === id ? ' ls-option--selected' : ''}`}
                             onClick={() => setSelectedLayout(id)}
                         >
-                            <div style={styles.preview}>
+                            <div className="ls-preview">
                                 <Preview />
                             </div>
-                            <span style={styles.name}>{name}</span>
+                            <span className="ls-name">{name}</span>
                         </div>
                     ))}
                 </div>
 
-                <div style={styles.footer}>
-                    <button style={styles.cancelBtn} onClick={onClose}>Cancel</button>
-                    <button style={styles.confirmBtn} onClick={() => { onSelectLayout(selectedLayout); onClose(); }}>
+                <div className="ls-footer">
+                    <button className="ls-cancel-btn" onClick={onClose}>Cancel</button>
+                    <button className="ls-confirm-btn" onClick={() => { onSelectLayout(selectedLayout); onClose(); }}>
                         Add Page
                     </button>
                 </div>

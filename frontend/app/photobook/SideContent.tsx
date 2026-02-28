@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 import {
     DndContext,
     closestCenter,
@@ -33,36 +33,6 @@ interface SideContentProps {
     pageLayouts: { [pageNumber: number]: LayoutType };
     pageImages: { [pageNumber: number]: { [dropZoneIndex: number]: string } };
 }
-
-const styles: { [key: string]: CSSProperties } = {
-    sidebar: {
-        display: "flex",
-        flexDirection: "column",
-        background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
-        padding: 16,
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        border: "1px solid #dee2e6",
-        position: "sticky",
-        height: "100vh",
-        width: 250,
-        flexShrink: 0,
-        overflow: "hidden",
-    },
-    pagesContainer: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        flex: 1,
-        overflowY: "auto",
-        paddingRight: 8,
-        minHeight: 0,
-    },
-    sidebarActions: {
-        paddingTop: 16,
-        borderTop: "2px solid #dee2e6",
-        flexShrink: 0,
-    },
-};
 
 const renderMiniPreview = (layout: LayoutType, images: { [dropZoneIndex: number]: string } = {}) => {
     const layouts = {
@@ -128,14 +98,14 @@ export default function SideContent({
     const sortableIds = pageOrder.map(String);
 
     return (
-        <div style={styles.sidebar}>
+        <div className="photobook-sidebar">
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
             >
                 <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-                    <div style={styles.pagesContainer} ref={containerRef}>
+                    <div className="photobook-pages-container" ref={containerRef}>
                         {pageOrder.map((pageNumber) => {
                             const layout = pageLayouts[pageNumber];
                             const isSelected = pageNumber === selectedPage;
@@ -154,7 +124,7 @@ export default function SideContent({
                 </SortableContext>
             </DndContext>
 
-            <div style={styles.sidebarActions}>
+            <div className="photobook-sidebar-actions">
                 <PrimaryButton onClick={onAddPage}>
                     Add Page
                 </PrimaryButton>
