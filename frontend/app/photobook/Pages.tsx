@@ -1,4 +1,4 @@
-import './Styles/paper.css';
+import '../uicomponents/Styles/paper.css';
 
 import type { ReactNode } from 'react';
 
