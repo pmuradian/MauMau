@@ -44,6 +44,18 @@ npx vitest run           # Run tests once without watch
 npx vitest run <path>    # Run specific test file
 ```
 
+### Before committing
+Follow this flow for both frontend and backend changes:
+1. Make changes
+2. Run tests — all must pass
+3. Add new tests if behaviour was added or changed
+4. Run tests again
+5. Run build — must succeed (catches broken imports that tests miss)
+6. Commit only if everything is green
+
+**Frontend** (from `frontend/`): `npx vitest run` then `npm run build`
+**Backend** (from `backend/`): `npm test` then `npx ts-node main.ts` to verify startup
+
 ### Backend (from backend/)
 ```bash
 npx ts-node main.ts      # Start API server (port 3000)
