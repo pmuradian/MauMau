@@ -1,9 +1,9 @@
 .mau-btn {
-    padding: 10px 20px;
+    padding: var(--space-2) var(--space-5);
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 16px;
+    font-size: var(--text-base);
 }
 
 .mau-btn--primary {
@@ -12,6 +12,7 @@
 }
 
 .mau-btn--secondary {
-    background-color: #A68B77;
-    color: #555555;
+    background-color: var(--color-secondary);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
 }
