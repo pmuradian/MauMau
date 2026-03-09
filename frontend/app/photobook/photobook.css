@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    padding: 16px;
+    padding: var(--space-4);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--color-border);
     position: sticky;
@@ -22,15 +22,15 @@
 .photobook-pages-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     flex: 1;
     overflow-y: auto;
-    padding-right: 8px;
+    padding-right: var(--space-2);
     min-height: 0;
 }
 
 .photobook-sidebar-actions {
-    padding-top: 16px;
+    padding-top: var(--space-4);
     border-top: 2px solid var(--color-border);
     flex-shrink: 0;
 }
@@ -39,7 +39,7 @@
     width: 100%;
     aspect-ratio: 0.7071;
     background-color: var(--color-surface);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -66,8 +66,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
-    padding: 0 24px;
+    gap: var(--space-6);
+    padding: 0 var(--space-6);
     min-height: 100vh;
     overflow-y: auto;
 }
@@ -76,20 +76,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px 0;
+    padding: var(--space-5) 0;
 }
 
 .photobook-controls {
     display: flex;
-    gap: 16px;
+    gap: var(--space-4);
     align-items: center;
 }
 
 .photobook-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
     color: var(--color-text);
-    margin-bottom: 6px;
+    margin-bottom: var(--space-2);
     transition: color 0.2s ease;
     cursor: pointer;
     text-align: left;
@@ -102,16 +102,16 @@
 .photobook-title-edit-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 6px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
 }
 
 .photobook-title-input {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
     border: 2px solid var(--color-primary);
     border-radius: var(--radius-sm);
-    padding: 6px 8px;
+    padding: var(--space-2) var(--space-2);
     outline: none;
     text-align: left;
     background: var(--color-surface);
@@ -121,9 +121,9 @@
 .photobook-title-button {
     border: none;
     border-radius: var(--radius-sm);
-    padding: 6px 12px;
+    padding: var(--space-2) var(--space-3);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--text-xs);
     flex: 1;
 }
 
@@ -133,26 +133,26 @@
 }
 
 .photobook-title-button.cancel {
-    background: #ccc;
+    background: var(--color-border);
     color: var(--color-text);
 }
 
 .photobook-description {
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
     text-align: left;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
     line-height: 1.4;
 }
 
 .photobook-page-indicator {
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: var(--color-primary);
     text-align: left;
-    font-weight: 500;
+    font-weight: var(--font-medium);
     background: rgba(119, 160, 160, 0.1);
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-lg);
     display: inline-block;
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
 }
