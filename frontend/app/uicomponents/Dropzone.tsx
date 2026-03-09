@@ -37,7 +37,7 @@ export function PreviewDropzone( { aspectRatio = '1', initialImage }: {
     }, [initialImage]);
 
         return (
-        <div style={{ aspectRatio: aspectRatio, width: '100%', backgroundColor: '#c0392b', overflow: 'hidden' }}>
+        <div style={{ aspectRatio: aspectRatio, width: '100%', backgroundColor: 'var(--color-danger)', overflow: 'hidden' }}>
             {file ? (
                 <img
                     src={file.preview}
