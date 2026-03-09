@@ -2,7 +2,7 @@
 .a4-page {
   aspect-ratio: 0.7071; /* A4 portrait ratio (1/√2) */
   background-color: var(--color-surface);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: center;
@@ -38,12 +38,12 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
