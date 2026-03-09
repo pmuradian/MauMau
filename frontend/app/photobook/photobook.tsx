@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
-import { viewPhotobook, updatePhotobookTitle } from "networking/NetworkService";
+import { viewPhotobook } from "networking/NetworkService";
 import { LayoutSelector, type LayoutType } from "./LayoutSelector";
 import SideContent from "./SideContent";
 import PhotobookPage from "./PhotobookPage";
@@ -12,8 +12,6 @@ import "./photobook.css";
 export default function Photobook() {
   const [searchParams] = useSearchParams();
   const [data, setData] = useState<PhotobookData | null>(null);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
   const [pageData, setPageData] = useState<{ [pageNumber: number]: PageData }>({});
   const [pageLayouts, setPageLayouts] = useState<{ [pageNumber: number]: LayoutType }>({});
@@ -91,19 +89,6 @@ export default function Photobook() {
       setData(null);
     }
   }, [photobookKey]);
-
-  const handleSaveTitle = async () => {
-    if (editedTitle.trim() && editedTitle !== data.title) {
-      try {
-        await updatePhotobookTitle(photobookKey, editedTitle.trim());
-        setData((prev) => prev ? { ...prev, title: editedTitle.trim() } : prev);
-      } catch (error) {
-        console.error("Error updating title:", error);
-        alert("Failed to update title. Please try again.");
-      }
-    }
-    setIsEditingTitle(false);
-  };
 
   return (
     <div className="photobook-container">
