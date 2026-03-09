@@ -28,6 +28,10 @@
   --color-error:        #cc3333;
   --color-error-bg:     #ffeeee;
   --color-error-border: #ffcccc;
+
+  /* Secondary (neutral button variant) */
+  --color-secondary:       #ffffff;
+  --color-secondary-hover: #f5f7fa;
 }
 
 :root {
@@ -38,6 +42,34 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* Spacing — 4px grid */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography — sizes */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   24px;
+  --text-2xl:  28px;
+  --text-icon: 48px;
+
+  /* Typography — weights */
+  --font-light:    300;
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
 }
 
 html,
