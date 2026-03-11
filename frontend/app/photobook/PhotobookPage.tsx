@@ -10,6 +10,7 @@ import { File } from "uicomponents/Dropzone";
 import { type DropCoords } from "./PageLayouts/Portrait/types";
 import { getUploadUrl, putFileToBucket, confirmUpload, removeImage } from "networking/NetworkService";
 import { type LayoutType } from "./LayoutSelector";
+import { useToast } from "../contexts/ToastContext";
 
 export default function PhotobookPage({
   photobookKey,
@@ -26,6 +27,7 @@ export default function PhotobookPage({
   onImageRemovedLocal: (dropZoneIndex: number) => void;
   layout: LayoutType;
 }) {
+  const { showError } = useToast();
   const handleDrop = async (file: File, _coords: DropCoords, dropZoneIndex: number) => {
     const contentType = file.data.type || 'image/jpeg';
     try {
@@ -35,6 +37,7 @@ export default function PhotobookPage({
       onImageUpdated(dropZoneIndex, finalUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
+      showError("Failed to upload image. Please try again.");
     }
   };
 
