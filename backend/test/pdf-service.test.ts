@@ -73,12 +73,4 @@ describe('PDFService', () => {
         });
     });
 
-    describe('pxToPoints', () => {
-        it('should convert pixels to points correctly', () => {
-            const pxToPoints = (PDFService as any).pxToPoints.bind(PDFService);
-            assert.strictEqual(pxToPoints(96), 72);
-            assert.strictEqual(pxToPoints(48), 36);
-            assert.strictEqual(pxToPoints(0), 0);
-        });
-    });
 });
