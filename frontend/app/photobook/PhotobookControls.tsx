@@ -1,8 +1,10 @@
-import React from "react";
 import { PrimaryButton } from "../uicomponents/Buttons";
 import { generatePDF } from "networking/NetworkService";
+import { useToast } from "../contexts/ToastContext";
 
 export default function PhotobookControls({ title, photobookKey }: { title: string; photobookKey: string }) {
+  const { showError } = useToast();
+
   return (
     <div className="photobook-controls">
       <PrimaryButton
@@ -21,7 +23,7 @@ export default function PhotobookControls({ title, photobookKey }: { title: stri
             window.URL.revokeObjectURL(url);
           } catch (error) {
             console.error("Error generating PDF:", error);
-            alert("Failed to generate PDF. Please try again.");
+            showError("Failed to generate PDF. Please try again.");
           }
         }}
       >
