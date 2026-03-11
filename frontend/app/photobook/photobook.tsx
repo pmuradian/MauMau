@@ -7,11 +7,13 @@ import PhotobookPage from "./PhotobookPage";
 import PhotobookControls from "./PhotobookControls";
 import { PhotobookData } from "./types";
 import { usePageState } from "./usePageState";
+import { useToast } from "../contexts/ToastContext";
 import "./photobook.css";
 
 export default function Photobook() {
   const [searchParams] = useSearchParams();
   const [data, setData] = useState<PhotobookData | null>(null);
+  const { showError } = useToast();
   const photobookKey = searchParams.get("key") || "";
 
   const {
@@ -47,11 +49,12 @@ export default function Photobook() {
         })
         .catch((error) => {
           console.error("Error fetching photobook:", error);
+          showError("Failed to load photobook. Please refresh the page.");
         });
     } else {
       setData(null);
     }
-  }, [photobookKey, initializeFromResponse]);
+  }, [photobookKey, initializeFromResponse, showError]);
 
   return (
     <div className="photobook-container">
@@ -75,6 +78,7 @@ export default function Photobook() {
           layout={pageLayouts[selectedPage] || 'horizontal-triplet'}
           onImageUpdated={onImageUpdated}
           onImageRemovedLocal={onImageRemovedLocal}
+          onImageRestored={onImageUpdated}
         />
 
         <PhotobookControls title={data?.title ?? ''} photobookKey={photobookKey} />
