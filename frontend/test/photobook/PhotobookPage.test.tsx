@@ -30,6 +30,7 @@ describe('PhotobookPage error handling', () => {
           images={{}}
           onImageUpdated={vi.fn()}
           onImageRemovedLocal={vi.fn()}
+          onImageRestored={vi.fn()}
           layout="horizontal-triplet"
         />
       </MemoryRouter>
@@ -37,5 +38,38 @@ describe('PhotobookPage error handling', () => {
 
     const dropzones = screen.getAllByText('+');
     expect(dropzones).toHaveLength(3);
+  });
+
+  it('restores image and shows toast on removal failure', async () => {
+    const mockOnImageRemovedLocal = vi.fn();
+    const mockOnImageRestored = vi.fn();
+    const removalError = new Error('Server error');
+    vi.mocked(NetworkService.removeImage).mockRejectedValueOnce(removalError);
+
+    render(
+      <MemoryRouter>
+        <PhotobookPage
+          photobookKey="test-key"
+          selectedPage={1}
+          images={{ 0: 'http://localhost:3000/uploads/test.jpg' }}
+          onImageUpdated={vi.fn()}
+          onImageRemovedLocal={mockOnImageRemovedLocal}
+          onImageRestored={mockOnImageRestored}
+          layout="horizontal-triplet"
+        />
+      </MemoryRouter>
+    );
+
+    // Find and click the remove button on the first dropzone
+    const removeButton = screen.getByTitle('Remove image');
+    removeButton.click();
+
+    expect(mockOnImageRemovedLocal).toHaveBeenCalledWith(0);
+
+    // Wait for the rejection to be handled
+    await vi.waitFor(() => {
+      expect(mockShowError).toHaveBeenCalledWith('Failed to remove image. Restoring it.');
+    });
+    expect(mockOnImageRestored).toHaveBeenCalledWith(0, 'http://localhost:3000/uploads/test.jpg');
   });
 });

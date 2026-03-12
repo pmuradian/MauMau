@@ -18,6 +18,7 @@ export default function PhotobookPage({
   images,
   onImageUpdated,
   onImageRemovedLocal,
+  onImageRestored,
   layout,
 }: {
   photobookKey: string;
@@ -25,6 +26,7 @@ export default function PhotobookPage({
   images: { [dropZoneIndex: number]: string };
   onImageUpdated: (dropZoneIndex: number, dataUrl: string) => void;
   onImageRemovedLocal: (dropZoneIndex: number) => void;
+  onImageRestored: (dropZoneIndex: number, imageUrl: string) => void;
   layout: LayoutType;
 }) {
   const { showError } = useToast();
@@ -42,9 +44,14 @@ export default function PhotobookPage({
   };
 
   const handleRemove = (dropZoneIndex: number) => {
+    const previousUrl = images[dropZoneIndex];
     onImageRemovedLocal(dropZoneIndex);
     removeImage(photobookKey, dropZoneIndex, selectedPage).catch((error) => {
       console.error("Error removing image from server:", error);
+      showError("Failed to remove image. Restoring it.");
+      if (previousUrl) {
+        onImageRestored(dropZoneIndex, previousUrl);
+      }
     });
   };
 
