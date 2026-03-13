@@ -58,30 +58,32 @@ export default function Photobook() {
 
   return (
     <div className="photobook-container">
-      <SideContent
-        selectedPage={selectedPage}
-        pageOrder={pageOrder}
-        onPageSelect={setSelectedPage}
-        onAddPage={() => setShowLayoutSelector(true)}
-        onReorderPages={handleReorderPages}
-        pageLayouts={pageLayouts}
-        pageImages={Object.fromEntries(
-          Object.entries(pageData).map(([k, v]) => [k, v?.images || {}])
-        )}
-      />
+      <PhotobookControls title={data?.title ?? ''} photobookKey={photobookKey} />
 
-      <div className="photobook-main-content">
-        <PhotobookPage
-          photobookKey={photobookKey}
+      <div className="photobook-body">
+        <SideContent
           selectedPage={selectedPage}
-          images={pageData[selectedPage]?.images || {}}
-          layout={pageLayouts[selectedPage] || 'horizontal-triplet'}
-          onImageUpdated={onImageUpdated}
-          onImageRemovedLocal={onImageRemovedLocal}
-          onImageRestored={onImageUpdated}
+          pageOrder={pageOrder}
+          onPageSelect={setSelectedPage}
+          onAddPage={() => setShowLayoutSelector(true)}
+          onReorderPages={handleReorderPages}
+          pageLayouts={pageLayouts}
+          pageImages={Object.fromEntries(
+            Object.entries(pageData).map(([k, v]) => [k, v?.images || {}])
+          )}
         />
 
-        <PhotobookControls title={data?.title ?? ''} photobookKey={photobookKey} />
+        <div className="photobook-main-content">
+          <PhotobookPage
+            photobookKey={photobookKey}
+            selectedPage={selectedPage}
+            images={pageData[selectedPage]?.images || {}}
+            layout={pageLayouts[selectedPage] || 'horizontal-triplet'}
+            onImageUpdated={onImageUpdated}
+            onImageRemovedLocal={onImageRemovedLocal}
+            onImageRestored={onImageUpdated}
+          />
+        </div>
       </div>
 
       <LayoutSelector

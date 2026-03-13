@@ -28,7 +28,7 @@ describe('PhotobookControls', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText('PRINT'));
+    fireEvent.click(screen.getByText('Order print'));
 
     await waitFor(() => {
       expect(mockShowError).toHaveBeenCalledWith('Failed to generate PDF. Please try again.');
@@ -48,7 +48,7 @@ describe('PhotobookControls', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText('PRINT'));
+    fireEvent.click(screen.getByText('Order print'));
 
     await waitFor(() => {
       expect(NetworkService.generatePDF).toHaveBeenCalledWith('key-1');
