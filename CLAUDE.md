@@ -235,10 +235,15 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 
 **Tailwind CSS 4.1.4** with custom CSS for specific components.
 
-**Design tokens** are defined in `app/app.css` using Tailwind's `@theme` block (colors) and `:root` (radius, shadows):
-- Colors: `--color-primary`, `--color-primary-hover`, `--color-primary-subtle`, `--color-text`, `--color-text-muted`, `--color-text-subtle`, `--color-surface`, `--color-background`, `--color-border`, `--color-danger*`, `--color-error*`
+**Design tokens** are defined in `app/app.css` using Tailwind's `@theme` block (colors) and `:root` (spacing, typography, radius, shadows):
+- Colors: `--color-primary`, `--color-primary-hover`, `--color-primary-subtle`, `--color-text`, `--color-text-muted`, `--color-text-subtle`, `--color-surface`, `--color-background`, `--color-border`, `--color-danger*`, `--color-error*`, `--color-secondary`, `--color-secondary-hover`
+- Spacing (4px grid): `--space-1` (4px), `--space-2` (8px), `--space-3` (12px), `--space-4` (16px), `--space-5` (20px), `--space-6` (24px), `--space-8` (32px), `--space-10` (40px), `--space-12` (48px), `--space-16` (64px)
+- Typography sizes: `--text-xs` (12px), `--text-sm` (14px), `--text-base` (16px), `--text-lg` (18px), `--text-xl` (24px), `--text-2xl` (28px), `--text-icon` (48px)
+- Typography weights: `--font-light` (300), `--font-normal` (400), `--font-medium` (500), `--font-semibold` (600), `--font-bold` (700)
 - Radius: `--radius-sm` (4px), `--radius-md` (8px), `--radius-lg` (12px)
 - Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
+
+All CSS files use tokens exclusively — no hardcoded spacing, font-size, font-weight, or color values. **Always use design tokens** when writing new CSS; never introduce hardcoded pixel values, hex colors, or font weights.
 
 **CSS co-location convention** — each CSS file lives next to the component it styles:
 - Global tokens: `app/app.css`
@@ -280,6 +285,15 @@ The photobook API uses `?key={photobookId}` query params, not path params.
 3. Update layout selector modal to include new option
 4. Ensure component accepts `onImageDropped`, `onImageRemoved`, `initialImages` props
 
+### Error Handling
+
+Use the toast notification system for user-facing errors. Never use `alert()` or silent `console.error` for error feedback.
+
+- **Photobook editor:** Call `showError("message")` from the `useToast()` hook (`app/contexts/ToastContext.tsx`)
+- **Auth pages / dashboard:** Keep existing inline `setError()` + `{error && <div>}` pattern (works well for forms)
+- **Optimistic updates:** Show toast on server failure even if UI already updated (e.g., image removal)
+- **NetworkService layer:** `console.error` + rethrow is fine here — callers handle user feedback
+
 ### Adding a New API Endpoint
 
 1. Add function to `app/networking/NetworkService.ts`
@@ -315,12 +329,16 @@ To wire up S3:
 
 ## Roadmap
 
-### Phase 1: Frontend UI ✓ (Mostly Complete)
-- [x] Page reordering (drag & drop)
+### Phase 1: Frontend UI (In Progress)
+- [x] Page reordering (drag & drop, does not save the state)
 - [x] Sidebar with page previews
 - [x] Layout selector
+- [x] Top header bar with brand, title, Preview/Order print buttons
 - [ ] Add/remove page functionality (partial)
 - [ ] Page format selection (A4 portrait/landscape, square)
+- [ ] **Home page redesign** — photobook cards should show a preview thumbnail of the first page (or title page) instead of plain text
+- [ ] **Title page concept** — each photobook gets a special first page (title page) that serves as the cover/preview image on the dashboard
+- [ ] **Photobook creation flow** — when creating a new photobook, user should pick a layout and name it upfront (currently creates with defaults)
 
 ### Phase 2: Backend Persistence ✓ (Complete)
 - [x] Wire up MongoDB models to API routes (replace DemoStorage)
@@ -333,6 +351,7 @@ To wire up S3:
 - [x] Delete unused storage.ts file
 - [ ] Print-ready PDF export with proper specs
 - [ ] Wire up S3StorageProvider for production
+- [ ] Worker thread for PDF generation (avoid blocking Express under concurrent requests)
 
 ### Phase 3: Authentication & Accounts (Partially Complete)
 - [x] Refresh token mechanism (avoid session expiry during editing)
@@ -354,13 +373,36 @@ To wire up S3:
 - [ ] Integration with printing partner
 - [ ] Order tracking and shipping notifications
 
-## Future Architecture
+## Infrastructure
 
-### Image Storage
-- **AWS S3** for production image storage (scalable, CDN-friendly)
-- Local file storage (`backend/uploads/`) used during development
-- Interface (`IStorageProvider`) designed to swap providers via env var
+### Architecture: Monolith
 
-### Content Moderation
+MauMau is a monolith and should stay that way. The app launches in Armenia (~3M population) with low expected traffic — hundreds to low thousands of users. A single Express server already handles auth, photobook API, file uploads, and PDF generation. Microservices would add operational complexity with no benefit at this scale. Extract services only if a real bottleneck emerges.
+
+### Production Stack
+
+- **1 VPS** (Hetzner, DigitalOcean, or similar) — a $10–20/month box handles this workload
+- **MongoDB Atlas** free/shared tier — managed backups, no ops burden
+- **S3-compatible storage** for images — AWS S3 or Cloudflare R2 (cheaper, no egress fees)
+- **Nginx** as reverse proxy — SSL termination, serve static frontend build, proxy `/api` to Express
+- **PM2** or **systemd** to keep the Node process alive
+
+### What to skip (for now)
+
+- **Docker/Kubernetes** — overkill, adds debugging layers
+- **CDN** — maybe later if image load times matter
+- **Redis** — not needed unless rate limiting or session caching is added
+- **Load balancer** — one server is sufficient
+
+### Deploy Flow
+
+Git push → SSH into server → pull + build + restart. Or a simple GitHub Actions workflow that does the same.
+
+### Notes
+
+- **PDF generation** is CPU-bound. If it becomes slow under concurrent requests, spawn it in a worker thread — not a separate service.
+- **Image storage** uses a swappable provider interface (`IStorageProvider`). Local filesystem in dev, S3 in production. Set `STORAGE_PROVIDER=local|s3` env var.
+
+### Content Moderation (Future)
 - **AWS Rekognition** for image recognition to filter adult/inappropriate content
 - Validation hook runs before images are saved to storage
