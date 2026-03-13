@@ -153,4 +153,43 @@ describe('Dropzone Component', () => {
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input).toHaveAttribute('accept', 'image/*,.jpeg,.png,.gif,.webp,.svg');
   });
+
+  it('triggers file input click when dropzone is clicked', () => {
+    render(
+      <Dropzone
+        onImageDropped={mockOnImageDropped}
+        onImageRemoved={mockOnImageRemoved}
+      />
+    );
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const clickSpy = vi.spyOn(input, 'click');
+
+    const dropzone = screen.getByText('+').closest('[role="presentation"]')!;
+    fireEvent.click(dropzone);
+
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it('calls onImageDropped when file is selected via click', async () => {
+    render(
+      <Dropzone
+        onImageDropped={mockOnImageDropped}
+        onImageRemoved={mockOnImageRemoved}
+      />
+    );
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new window.File(['test'], 'test.jpg', { type: 'image/jpeg' });
+
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
+    fireEvent.change(input);
+
+    await waitFor(() => {
+      expect(mockOnImageDropped).toHaveBeenCalled();
+    });
+  });
 });

@@ -105,7 +105,7 @@ export default function PhotobookPage({
 
   return (
     <div className="photobook-paper-container">
-      <A4Portrait>{renderLayout()}</A4Portrait>
+      <A4Portrait pageNumber={selectedPage}>{renderLayout()}</A4Portrait>
     </div>
   );
 }

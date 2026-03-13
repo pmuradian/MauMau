@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './LayoutSelector.css';
+import { PrimaryButton, SecondaryButton } from '../uicomponents/Buttons';
 import {
     PortraitPreviewHorizontalTriplet,
     PortraitPreviewVerticalTriplet,
@@ -53,10 +54,10 @@ export function LayoutSelector({ isOpen, onClose, onSelectLayout }: LayoutSelect
                 </div>
 
                 <div className="ls-footer">
-                    <button className="ls-cancel-btn" onClick={onClose}>Cancel</button>
-                    <button className="ls-confirm-btn" onClick={() => { onSelectLayout(selectedLayout); onClose(); }}>
+                    <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
+                    <PrimaryButton onClick={() => { onSelectLayout(selectedLayout); onClose(); }}>
                         Add Page
-                    </button>
+                    </PrimaryButton>
                 </div>
             </div>
         </div>

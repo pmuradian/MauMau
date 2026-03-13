@@ -97,24 +97,3 @@
     background: var(--color-background);
 }
 
-.ls-cancel-btn {
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    border: none;
-    background: var(--color-border);
-    color: var(--color-text-muted);
-    cursor: pointer;
-}
-
-.ls-confirm-btn {
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    border: none;
-    background: var(--color-primary);
-    color: white;
-    cursor: pointer;
-}
-
-.ls-confirm-btn:hover {
-    background: var(--color-primary-hover);
-}

@@ -113,11 +113,14 @@ export class PDFService {
             const arrayBuffer = await response.arrayBuffer();
             const imageBuffer = Buffer.from(arrayBuffer);
 
+            doc.save();
+            doc.rect(dropzone.x, dropzone.y, dropzone.width, dropzone.height).clip();
             doc.image(imageBuffer, dropzone.x, dropzone.y, {
-                fit: [dropzone.width, dropzone.height],
+                cover: [dropzone.width, dropzone.height],
                 align: 'center',
                 valign: 'center',
             });
+            doc.restore();
         } catch (error) {
             console.error('Error placing image in PDF:', error);
         }

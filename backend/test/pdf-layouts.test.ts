@@ -12,23 +12,19 @@ describe('calculateDropzones', () => {
             assert.strictEqual(zones.length, 3);
         });
 
-        it('top two dropzones are side-by-side and equal width', () => {
+        it('top two dropzones are square (AR 1) and side-by-side', () => {
             const zones = calculateDropzones('horizontal-triplet', contentArea);
-            const expectedWidth = (400 - GAP) / 2;
-            assert.ok(Math.abs(zones[0].width - expectedWidth) < 0.01);
-            assert.ok(Math.abs(zones[1].width - expectedWidth) < 0.01);
+            assert.ok(Math.abs(zones[0].width - zones[0].height) < 0.01);
+            assert.ok(Math.abs(zones[1].width - zones[1].height) < 0.01);
+            assert.ok(Math.abs(zones[0].width - zones[1].width) < 0.01);
             assert.strictEqual(zones[0].y, zones[1].y);
             assert.ok(zones[1].x > zones[0].x);
         });
 
-        it('bottom dropzone spans full width', () => {
+        it('bottom dropzone maintains AR 1.5', () => {
             const zones = calculateDropzones('horizontal-triplet', contentArea);
-            assert.strictEqual(zones[2].width, 400);
-        });
-
-        it('bottom dropzone height matches AR 1.5', () => {
-            const zones = calculateDropzones('horizontal-triplet', contentArea);
-            assert.ok(Math.abs(zones[2].height - 400 / 1.5) < 0.01);
+            const ar = zones[2].width / zones[2].height;
+            assert.ok(Math.abs(ar - 1.5) < 0.01);
         });
     });
 
@@ -51,12 +47,18 @@ describe('calculateDropzones', () => {
             assert.ok(zones[1].y > zones[0].y);
         });
 
-        it('right dropzone fills remaining width and full height', () => {
+        it('right dropzone maintains AR 0.562', () => {
             const zones = calculateDropzones('vertical-triplet', contentArea);
-            const leftColWidth = (400 - GAP) * 0.4;
-            const expectedRight = 400 - leftColWidth - GAP;
-            assert.ok(Math.abs(zones[2].width - expectedRight) < 0.01);
-            assert.strictEqual(zones[2].height, 600);
+            const ar = zones[2].width / zones[2].height;
+            assert.ok(Math.abs(ar - 0.562) < 0.01);
+        });
+
+        it('left dropzones maintain AR 0.8', () => {
+            const zones = calculateDropzones('vertical-triplet', contentArea);
+            const ar0 = zones[0].width / zones[0].height;
+            const ar1 = zones[1].width / zones[1].height;
+            assert.ok(Math.abs(ar0 - 0.8) < 0.01);
+            assert.ok(Math.abs(ar1 - 0.8) < 0.01);
         });
     });
 
@@ -72,10 +74,12 @@ describe('calculateDropzones', () => {
             assert.ok(Math.abs(zones[0].y - paddedTop) < 0.01);
         });
 
-        it('both dropzones are full width and equal height', () => {
+        it('both dropzones maintain AR 1.5 and equal height', () => {
             const zones = calculateDropzones('vertical-tuple', contentArea);
-            assert.strictEqual(zones[0].width, 400);
-            assert.strictEqual(zones[1].width, 400);
+            const ar0 = zones[0].width / zones[0].height;
+            const ar1 = zones[1].width / zones[1].height;
+            assert.ok(Math.abs(ar0 - 1.5) < 0.01);
+            assert.ok(Math.abs(ar1 - 1.5) < 0.01);
             assert.ok(Math.abs(zones[0].height - zones[1].height) < 0.01);
         });
     });
